@@ -1,0 +1,25 @@
+name: Big_Plugin
+main: server_inner_part.JoinLeave
+version: _ALPHA.2.0
+author: Tyrolyean
+commands:
+   ping:
+      description: The ping of the player.
+      usage: /<command>
+      permission: big.ping
+      permission-message: You don't have <permission>
+   lobby:
+      description: Sets the Lobby.
+      usage: /<command>
+      permission: big.lobby
+      permission-message: You don't have <permission>
+   time:
+      description: Gives the actual server-time.
+      usage: /<command>
+      permission: big.time
+      permission-message: You don't have <permission>
+   createserver:
+      description: Creates a new Server.
+      usage: /<command> <world_Name> <world_Type> <world_owner_uuid>
+      permission: big.create
+      permission-message: Don't do that...

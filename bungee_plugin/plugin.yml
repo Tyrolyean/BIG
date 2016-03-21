@@ -1,0 +1,15 @@
+name: big
+main: bungee_plugin.big
+version: _ALPHA.0.1
+author: Tyrolyean
+commands:
+    hub:
+      description: Connects you to the hub.
+      usage: /<command> 
+      permission: big.hub
+      permission-message: You don't have <permission>
+    connect:
+      description: Connects you to the world.
+      usage: /<command> <world_id>
+      permission: big.connect
+      permission-message: You don't have <permission>
