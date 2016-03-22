@@ -17,7 +17,7 @@ public class MYSQL_CONNECTOR_CREATE_SERVER{
 	// Database credentials
 	static final String USER = "minecraft";
 	static final String PASS = "minecraft";
-	public static int get_new(String name, String type, String uuid) {
+	public static int get_new(String name, String type, String uuid)throws ClassNotFoundException {
 		// JDBC driver name and database URL
 
 
@@ -64,6 +64,7 @@ public class MYSQL_CONNECTOR_CREATE_SERVER{
 
 				}
 				//Connect on base of the reserved 
+				try{
 				InetAddress host=InetAddress.getByName(adress);
 			      FTPClient server = new FTPClient();
 				server.connect(host);
@@ -96,7 +97,9 @@ public class MYSQL_CONNECTOR_CREATE_SERVER{
 				stmt.execute("INSERT INTO server_location (port,adress,expires,owner,location,name) VALUES ('"+port+"','"+adress+"','"+unixTime+"','"+uuid+"','"+direction+"','"+name+"') ");
 				
 				
-				
+				}catch(Exception e){
+					System.out.println(e.getMessage());
+				}
 				// Close Connection
 				rs.close();
 				stmt.close();
