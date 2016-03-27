@@ -8,6 +8,7 @@ import java.nio.file.Path;
 
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
@@ -18,7 +19,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 
-public class Create_Server {
+public class Create_Server extends JavaPlugin {
 	public static boolean main(int Port, int id, String name, String type, String path, FTPClient server,
 			String username, String password) throws IOException {
 		// find out which Folder has the highest Number
@@ -513,10 +514,12 @@ public class Create_Server {
 			if (JoinLeave.debug()) {
 				System.out.println("Exited FTP-Conection " + server.getControlEncoding());
 			}
-
-			JoinLeave.server.getScheduler().runTaskLater(JoinLeave.getPlugin(null), new Runnable() {
+			if(JoinLeave.debug()){
+				System.out.	println("Java plugin:  "+JoinLeave.plugin.getServer().getBukkitVersion());
+			}
+			JoinLeave.plugin.getServer().getScheduler().runTaskLater( JoinLeave.plugin, new Runnable() {
 				public void run() {
-					
+
 					ChannelExec channel = null;
 					Session sessie = null;
 					try {
@@ -528,7 +531,7 @@ public class Create_Server {
 						sessie.setPassword(password);
 						sessie.connect();
 						channel = (ChannelExec) sessie.openChannel("exec");
-						channel.setCommand(path + id + "/start.sh");
+						channel.setCommand("screen -dmS "+id+" "+path + id + "/start.sh");
 						BufferedReader in = new BufferedReader(new InputStreamReader(channel.getInputStream()));
 						channel.connect();
 						if (JoinLeave.debug()) {
@@ -544,14 +547,12 @@ public class Create_Server {
 						try {
 							in.close();
 						} catch (IOException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 					} catch (JSchException e) {
 						System.out.println(
 								"SSH-Connection to Host " + server.getRemoteAddress() + " but got exception " + e);
 					} catch (IOException e1) {
-						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					} finally {
 						if (channel != null)
@@ -560,7 +561,7 @@ public class Create_Server {
 							sessie.disconnect();
 					}
 				}
-			}, 10000);
+			}, 200L);
 
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -41,7 +41,7 @@ public static Server server;
 	public static Boolean debug() {
 		return true;
 	}
-static public Plugin plugin=null;
+	public static Plugin plugin;
 	// onEnable
 	@Override
 	public  void onEnable() {
@@ -90,7 +90,7 @@ static public Plugin plugin=null;
 			 * "lobby_y: ", "")); double lobbyz =
 			 * Double.parseDouble(caught[3].replace("lobby_z: ", "")); Lobby =
 			 * new Location(this.getServer().getWorld(caught[4].replace(
-			 * "lobby_world: ", "")), lobbyy, lobbyx, lobbyz);
+			 * "lobby_world: ", "")), lobbyy, lobbyx, lobbyz); 
 			 */
 			// } catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -199,6 +199,7 @@ static public Plugin plugin=null;
 		} else if (cmd.getName().equalsIgnoreCase("createserver")) {
 			if (sender == this.getServer().getConsoleSender()) {
 				try {
+					plugin=this;
 					MYSQL_CONNECTOR_CREATE_SERVER.get_new(args[0], args[1], args[2]);
 				} catch (Exception e) {
 					sender.sendMessage("Too few Arguments!");

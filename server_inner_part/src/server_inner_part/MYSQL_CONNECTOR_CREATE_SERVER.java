@@ -109,8 +109,6 @@ public class MYSQL_CONNECTOR_CREATE_SERVER {
 				sid++;
 				long unixTime = System.currentTimeMillis() / 1000L;
 				unixTime += 5184000;
-				Create_Server.main(port, sid, username, type, direction, server, username, password);
-				direction = direction + sid + "/";
 				rs = null;
 				rs = stmt.executeQuery("SELECT id FROM server_location WHERE owner ='" + uuid + "'");
 				int server_id = 0;
@@ -118,22 +116,25 @@ public class MYSQL_CONNECTOR_CREATE_SERVER {
 					id = rs.getInt(1);
 				}
 				if (server_id == 0) {//If no Server of the player exists then create a new one
-					stmt.execute("INSERT INTO server_location (port,adress,expires,owner,location,name) VALUES ('"
-							+ port + "','" + adress + "','" + unixTime + "','" + uuid + "','" + direction + "','" + name
+					Create_Server.main(port, sid, username, type, direction, server, username, password);
+					direction = direction + sid + "/";
+					stmt.execute("INSERT INTO server_location (port,adress,owner,location,name) VALUES ('"
+							+ port + "','" + adress + "','" + uuid + "','" + direction + "','" + name
 							+ "') ");
-					stmt.execute("INSERT INTO worlds ()");
+					stmt.execute("INSERT INTO worlds (world_name,server_id,owner,expires,location,world_type,server_internal_number) VALUES('"+name+"',"+server_id+",'"+uuid+"',"+unixTime+",'"+adress+"','"+type+"',"+1+")");
 					if (JoinLeave.debug()) {
 						System.out.println("Created the Server and the 1st spawn world in the MYSQL-Database");
 					}
 				} else {//The player has already a Server. Adding a new world to the Server
 					//GET the maximal Server internal number
+					direction = direction + sid + "/";
 					rs=null;
 					int internal_number=1;
 							rs=stmt.executeQuery("SELECT MAX(server_internal_number) FROM worlds WHERE server_id ="+server_id);
 					while(rs.next()){
 						internal_number=rs.getInt(1);
 					}
-					stmt.execute("INSERT INTO worlds (world_name,server_id,owner,expires,location,world_type,server_internal_number) VALUES('"+name+"',"+server_id+",'"+uuid+"',"+unixTime+",'"+type+"','"+internal_number+"')");
+					stmt.execute("INSERT INTO worlds (world_name,server_id,owner,expires,location,world_type,server_internal_number) VALUES('"+name+"',"+server_id+",'"+uuid+"',"+unixTime+",'"+adress+"','"+type+"',"+internal_number+")");
 					if(JoinLeave.debug()){
 						System.out.println("");
 					}
