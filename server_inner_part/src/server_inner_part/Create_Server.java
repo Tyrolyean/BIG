@@ -1,37 +1,51 @@
 package server_inner_part;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.nio.file.Path;
 
+import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 
+import com.jcraft.jsch.ChannelExec;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 
 public class Create_Server {
-	public static boolean main(int Port, int id, String name, String type,String path, FTPClient server) throws IOException {
+	public static boolean main(int Port, int id, String name, String type, String path, FTPClient server,
+			String username, String password) throws IOException {
 		// find out which Folder has the highest Number
-		Path path_under = new File(path+id).toPath();
-		
-			server.changeWorkingDirectory(path);
-		
-			server.makeDirectory(""+id);
-		Path files =new File(new File(System.getProperty("user.dir")).toPath().getParent().toString()+"/0/").toPath();
-		//server.storeFile(remote, local);   Syntax for storing file
-		String tDir = System.getProperty("java.io.tmpdir");//Where the files are temporarily stored
-		if(JoinLeave.debug()){
-			System.out.println("Creating Spigot-Server at "+server.getRemoteAddress().getHostAddress()+" with Server-id "+id+" and port "+Port);
+		Path path_under = new File(path + id).toPath();
+		server.setFileTransferMode(FTP.BINARY_FILE_TYPE);
+		server.setFileType(FTP.BINARY_FILE_TYPE);
+		server.changeWorkingDirectory(path);
+
+		server.makeDirectory("" + id);
+		Path files = new File(new File(System.getProperty("user.dir")).toPath().getParent().toString() + "/0/")
+				.toPath();
+		// server.storeFile(remote, local); Syntax for storing file
+		String tDir = System.getProperty("java.io.tmpdir");// Where the files
+															// are temporarily
+															// stored
+		if (JoinLeave.debug()) {
+			System.out.println("Creating Spigot-Server at " + server.getRemoteAddress().getHostAddress()
+					+ " with Server-id " + id + " and port " + Port);
 		}
 		// Create Server
 		PrintWriter writer;
 		try {
-			if(JoinLeave.debug()){
+			if (JoinLeave.debug()) {
 				System.out.println("Creating File start.sh");
 			}
 			// Create start.sh for Restarting the Server and for the first Start
-			writer = new PrintWriter(tDir+ "/start.sh");
+			writer = new PrintWriter(tDir + "/start.sh");
 			writer.println("#!/bin/bash");
 			writer.println("# /etc/init.d/minecraft");
 			writer.println("# version _APLPHA.0.1 2016-02-28 (YYYY-MM-DD)");
@@ -73,11 +87,12 @@ public class Create_Server {
 			writer.println("    echo \"Starting Minecraft...\"");
 			writer.println("    cd $MCPATH");
 			writer.println("    as_user \"cd $MCPATH && screen  -dmS ${SCREENNAME} $INVOCATION\"");
-			writer.println("    sleep 7");
 			writer.println("    if pgrep -u $USERNAME > /dev/null");
 			writer.println("    then");
 			writer.println("      echo \"running.\"");
+			writer.println("    exit 0");
 			writer.println("    else");
+			writer.println("    exit 1");
 			writer.println("      echo \"Error! Could not start Server\"");
 			writer.println("    fi");
 			writer.println("}");
@@ -130,29 +145,28 @@ public class Create_Server {
 			writer.println("esac");
 			writer.println("exit 0");
 			writer.close();
-			//Send sh-file to Server
-			if(JoinLeave.debug()){
-				System.out.println(server.storeFile(path+"/"+id+"/start.sh", new FileInputStream(tDir+ "/start.sh")));
-			}
-			else{
-				server.storeFile(path+"/"+id, new FileInputStream(tDir+ "/start.sh"));
+			// Send sh-file to Server
+			if (JoinLeave.debug()) {
+				System.out.println(
+						server.storeFile(path + "/" + id + "/start.sh", new FileInputStream(tDir + "/start.sh")));
+			} else {
+				server.storeFile(path + "/" + id, new FileInputStream(tDir + "/start.sh"));
 
 			}
-			if(JoinLeave.debug()){
-				System.out.println(new File(tDir+ "/start.sh").delete());
+			if (JoinLeave.debug()) {
+				System.out.println(new File(tDir + "/start.sh").delete());
 				System.out.println("Created file start.sh");
-			}
-			else{
-				new File(tDir+ "/start.sh").delete();
+			} else {
+				new File(tDir + "/start.sh").delete();
 
-			}			//Delete temp file
-			//End of 
-			
-			if(JoinLeave.debug()){
+			} // Delete temp file
+				// End of
+
+			if (JoinLeave.debug()) {
 				System.out.println("Creating File eula.txt");
 			}
 			// Create Eula.txt
-			writer = new PrintWriter(tDir+ "/eula.txt");
+			writer = new PrintWriter(tDir + "/eula.txt");
 			writer.println(
 					"#By changing the setting below to TRUE you are indicating your agreement to our EULA (https://account.mojang.com/documents/minecraft_eula).");
 			writer.println("#Sun Feb 21 11:20:57 CET 2016");
@@ -160,17 +174,18 @@ public class Create_Server {
 			writer.close();
 			if (JoinLeave.debug()) {
 				System.out.println("Created Eula.txt");
-				System.out.println(server.storeFile(path+"/"+id+"/eula.txt", new FileInputStream(tDir+ "/eula.txt")));
-				new File(tDir+ "/eula.txt").delete();
-			}else{
-				server.storeFile(path+"/"+id+"/eula.txt", new FileInputStream(tDir+ "/eula.txt"));
-				new File(tDir+ "/eula.txt").delete();
+				System.out.println(
+						server.storeFile(path + "/" + id + "/eula.txt", new FileInputStream(tDir + "/eula.txt")));
+				new File(tDir + "/eula.txt").delete();
+			} else {
+				server.storeFile(path + "/" + id + "/eula.txt", new FileInputStream(tDir + "/eula.txt"));
+				new File(tDir + "/eula.txt").delete();
 			}
 			// Create Spigot.yml
 			if (JoinLeave.debug()) {
 				System.out.println("Creating spigot.yml");
 			}
-			writer = new PrintWriter(tDir+ "/spigot.yml");
+			writer = new PrintWriter(tDir + "/spigot.yml");
 			writer.println("# This is the main configuration file for Spigot.");
 			writer.println("# As you can see, there's tons to configure. Some options may impact gameplay, so use");
 			writer.println("# with caution, and make sure you know what each option does before configuring.");
@@ -284,14 +299,15 @@ public class Create_Server {
 			writer.close();
 			if (JoinLeave.debug()) {
 				System.out.println("Created Spigot.yml!");
-				System.out.println(server.storeFile(path+"/"+id+"/spigot.yml", new FileInputStream(tDir+ "/spigot.yml")));
-				new File(tDir+ "/spigot.yml").delete();
-			}else{
-				server.storeFile(path+"/"+id+"/spigot.yml", new FileInputStream(tDir+ "/spigot.yml"));
-				new File(tDir+ "/spigot.yml").delete();
+				System.out.println(
+						server.storeFile(path + "/" + id + "/spigot.yml", new FileInputStream(tDir + "/spigot.yml")));
+				new File(tDir + "/spigot.yml").delete();
+			} else {
+				server.storeFile(path + "/" + id + "/spigot.yml", new FileInputStream(tDir + "/spigot.yml"));
+				new File(tDir + "/spigot.yml").delete();
 			}
 			// Create Bukkit.yml
-			if(JoinLeave.debug()){
+			if (JoinLeave.debug()) {
 				System.out.println("Creating File bukkit.yml");
 			}
 			writer = new PrintWriter(tDir + "/bukkit.yml");
@@ -337,22 +353,22 @@ public class Create_Server {
 			writer.println("  isolation: SERIALIZABLE");
 			writer.println("  driver: com.mysql.jdbc.Driver");
 			writer.println("  password: bukkit");
-			writer.println("  url: jdbc:mysql:/"+"/192.168.0.2:3306/bukkit");
+			writer.println("  url: jdbc:mysql:/" + "/192.168.0.2:3306/bukkit");
 			writer.close();
 			if (JoinLeave.debug()) {
 				System.out.println("Created bukkit.yml!");
-				System.out.println(server.storeFile(path+"/"+id+"/bukkit.yml", new FileInputStream(tDir+ "/bukkit.yml")));
-				new File(tDir+ "/bukkit.yml").delete();
-			}else{
-				server.storeFile(path+"/"+id+"/bukkit.yml", new FileInputStream(tDir+ "/bukkit.yml"));
-				new File(tDir+ "/bukkit.yml").delete();
+				System.out.println(
+						server.storeFile(path + "/" + id + "/bukkit.yml", new FileInputStream(tDir + "/bukkit.yml")));
+				new File(tDir + "/bukkit.yml").delete();
+			} else {
+				server.storeFile(path + "/" + id + "/bukkit.yml", new FileInputStream(tDir + "/bukkit.yml"));
+				new File(tDir + "/bukkit.yml").delete();
 			}
 			// Create Server.properties
-			if(JoinLeave.debug()){
+			if (JoinLeave.debug()) {
 				System.out.println("Creating File server.properties");
 			}
-			
-			
+
 			writer = new PrintWriter(tDir + "/server.properties");
 			writer.println("#Minecraft server properties");
 			writer.println("#Sun Feb 21 11:21:29 CET 2016");
@@ -393,31 +409,31 @@ public class Create_Server {
 			writer.close();
 			if (JoinLeave.debug()) {
 				System.out.println("Created server.properties!");
-				System.out.println(server.storeFile(path+"/"+id+"/server.properties", new FileInputStream(tDir+ "/server.properties")));
-				new File(tDir+ "/server.properties").delete();
-			}else{
-				server.storeFile(path+"/"+id+"/server.properties", new FileInputStream(tDir+ "/server.properties"));
-				new File(tDir+ "/server.properties").delete();
+				System.out.println(server.storeFile(path + "/" + id + "/server.properties",
+						new FileInputStream(tDir + "/server.properties")));
+				new File(tDir + "/server.properties").delete();
+			} else {
+				server.storeFile(path + "/" + id + "/server.properties",
+						new FileInputStream(tDir + "/server.properties"));
+				new File(tDir + "/server.properties").delete();
 			}
-			
-			
-			
+
 			// Create Directory /plugins
 			if (JoinLeave.debug()) {
-				System.out.println(server.makeDirectory(path+"/"+id+"/plugins/"));
+				System.out.println(server.makeDirectory(path + "/" + id + "/plugins/"));
 			} else {
-				server.makeDirectory(path+"/"+id+"/plugins/");
+				server.makeDirectory(path + "/" + id + "/plugins/");
 			}
 			// create Directory for Permissions Ex
-			
+
 			if (JoinLeave.debug()) {
-				System.out.println(server.makeDirectory(path+"/"+id+"/plugins/PermissionsEx/"));
+				System.out.println(server.makeDirectory(path + "/" + id + "/plugins/PermissionsEx/"));
 			} else {
-				server.makeDirectory(path+"/"+id+"/plugins/PermissionsEx/");
+				server.makeDirectory(path + "/" + id + "/plugins/PermissionsEx/");
 			}
 			// Create PermissionsEx config
-			
-			if(JoinLeave.debug()){
+
+			if (JoinLeave.debug()) {
 				System.out.println("Creating File config.yml for Permissions Ex");
 			}
 			writer = new PrintWriter(tDir + "/config.yml");
@@ -445,23 +461,18 @@ public class Create_Server {
 			writer.println("updater: true");
 			writer.println("alwaysUpdate: false");
 			writer.close();
-			
-			
-			
-			
-			
+
 			if (JoinLeave.debug()) {
 				System.out.println("Created config.yml!");
-				System.out.println(server.storeFile(path+"/"+id+"/plugins/PermissionsEx/config.yml", new FileInputStream(tDir+ "/config.yml")));
-				new File(tDir+ "/config.yml").delete();
-			}else{
-				server.storeFile(path+"/"+id+"/plugins/PermissionsEx/config.yml", new FileInputStream(tDir+ "/config.yml"));
-				new File(tDir+ "/config.yml").delete();
+				System.out.println(server.storeFile(path + "/" + id + "/plugins/PermissionsEx/config.yml",
+						new FileInputStream(tDir + "/config.yml")));
+				new File(tDir + "/config.yml").delete();
+			} else {
+				server.storeFile(path + "/" + id + "/plugins/PermissionsEx/config.yml",
+						new FileInputStream(tDir + "/config.yml"));
+				new File(tDir + "/config.yml").delete();
 			}
-			
-			
-			
-			
+
 			// The firs world will be created because of an MYSQL_Entry
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -469,34 +480,87 @@ public class Create_Server {
 		// Copy files and Start Server
 		try {
 			// Copy Spigot
-			server.storeFile(path+"/"+id+"/plugins/spigot.jar", new FileInputStream(files.toString()+"/spigot.jar"));
+			server.mode(FTP.BINARY_FILE_TYPE);
+
+			if (JoinLeave.debug()) {
+				System.out.println("now uploading spigot .yml with Options:");
+				System.out.println(server.getStatus());
+			}
+			server.storeFile(path + "/" + id + "/spigot.jar",
+					new FileInputStream(new File(files.toString() + "/spigot.jar")));
 
 			// Copy outer Part of this Plugin
-			server.storeFile(path+"/"+id+"/plugins/outer_part.jar", new FileInputStream(files.toString()+"/outer_part.jar"));
+			server.storeFile(path + "/" + id + "/plugins/outer_part.jar",
+					new FileInputStream(files.toString() + "/outer_part.jar"));
 			// Copy PermissionsEx
-			server.storeFile(path+"/"+id+"/plugins/PermissionsEx.jar", new FileInputStream(files.toString()+"/PermissionsEx.jar"));
-			if(JoinLeave.debug()) {
+			server.storeFile(path + "/" + id + "/plugins/PermissionsEx.jar",
+					new FileInputStream(files.toString() + "/PermissionsEx.jar"));
+			if (JoinLeave.debug()) {
 				System.out.println("Copyed all Files from 0 Directory. Attempting to Start start.sh file!");
 			}
-			
-			//Set the Programms to Executable
-			
-			new File(path_under.toString() + "/spigot.jar").setExecutable(true);
-			new File(path_under.toString() + "/start.sh").setExecutable(true);
-			new File(path_under.toString() + "/spigot.jar").setReadable(true);
-			new File(path_under.toString() + "/start.sh").setReadable(true);
-			//Start the Server
-			try {
-				//
-				ProcessBuilder p = new ProcessBuilder("./start.sh", "first", name);
-				 p.directory(path_under.toFile());
-				 Process pp= p.start();
-				 if(JoinLeave.debug()){
-				 System.out.println("Output-Stream of the Script: "+pp.getOutputStream());
-				 }
-			} catch (IOException e) {
-				System.out.println("An error occured while attempting to genmerate an new Server!: "+e.getMessage());
+
+			// Set the Programms to Executable
+			// Start the Server
+			if (JoinLeave.debug()) {
+				System.out.println("Setting programm to executable ");
 			}
+			Boolean did = server.sendSiteCommand("chmod 777 ./" + id + "/start.sh");
+			if (JoinLeave.debug()) {
+				System.out.println("Did it: " + did);
+			}
+			InetAddress host = server.getRemoteAddress();
+			server.disconnect();
+			if (JoinLeave.debug()) {
+				System.out.println("Exited FTP-Conection " + server.getControlEncoding());
+			}
+
+			JoinLeave.server.getScheduler().runTaskLater(JoinLeave.getPlugin(null), new Runnable() {
+				public void run() {
+					
+					ChannelExec channel = null;
+					Session sessie = null;
+					try {
+						JSch ssh = new JSch();
+						sessie = ssh.getSession(username, host.getHostAddress());
+						java.util.Properties config = new java.util.Properties();
+						config.put("StrictHostKeyChecking", "no");
+						sessie.setConfig(config);
+						sessie.setPassword(password);
+						sessie.connect();
+						channel = (ChannelExec) sessie.openChannel("exec");
+						channel.setCommand(path + id + "/start.sh");
+						BufferedReader in = new BufferedReader(new InputStreamReader(channel.getInputStream()));
+						channel.connect();
+						if (JoinLeave.debug()) {
+							System.out.println(
+									"command for starting server was executed with code: " + channel.getExitStatus());
+						}
+						if (channel.getExitStatus() == 0 || channel.isClosed() || channel.isEOF()) {
+							if (JoinLeave.debug()) {
+
+								System.out.println("Successfully connected to the Client. Command was executed!");
+							}
+						}
+						try {
+							in.close();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					} catch (JSchException e) {
+						System.out.println(
+								"SSH-Connection to Host " + server.getRemoteAddress() + " but got exception " + e);
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					} finally {
+						if (channel != null)
+							channel.disconnect();
+						if (sessie != null)
+							sessie.disconnect();
+					}
+				}
+			}, 10000);
 
 		} catch (Exception e) {
 			e.printStackTrace();
