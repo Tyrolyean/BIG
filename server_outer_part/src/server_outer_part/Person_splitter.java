@@ -4,11 +4,12 @@ import java.net.InetAddress;
 import java.net.Socket;
 
 import org.bukkit.Location;
+import org.bukkit.Server;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Person_splitter extends JavaPlugin implements Listener {
@@ -24,6 +25,8 @@ public class Person_splitter extends JavaPlugin implements Listener {
 
 	@Override
 	public void onEnable() {
+		server=this.getServer();
+		server_id=MYSQL_CONNECTOR_OPTIONS.get_id();
 		String DATA[] = new String[2];
 		String i = null;
 	       try {
@@ -78,27 +81,18 @@ public class Person_splitter extends JavaPlugin implements Listener {
 		if (id != 0) {
 			event.getPlayer().sendMessage("Wilkommen auf deiner Welt " + event.getPlayer().getName());
 			// set and get target world
-			MYSQL_CONNECTOR_TRANSMISSION mysqltarget = new MYSQL_CONNECTOR_TRANSMISSION();
-			String target_world;
-			target_world = mysqltarget.select(event.getPlayer());
 			if(debug){
-				System.out.println("Player "+event.getPlayer().getDisplayName()+" joined world "+target_world);
+				System.out.println("Player "+event.getPlayer().getDisplayName()+" joined Server!");
 			}
-			if (target_world == null) {
-				event.getPlayer().kickPlayer(
-						"The redirection which took you to this server is not registered! Please try again if you believe this is an error!");
-			} else if (this.getServer().getWorld(target_world) == null) {
-				event.getPlayer().kickPlayer(
-						"The world you were redirected to does no longer exists or never exists!Contact an Server-Admin if you believe this is an error!");
-			} else if(this.getServer().getWorld(target_world).getPlayers().size()>5){
+			if(this.getServer().getOnlinePlayers().size()>5){
 				event.getPlayer().kickPlayer(
 						"There are too much players in this world!");
-			}
-			else{
-				Location templocation = new Location(this.getServer().getWorld(target_world),
-						this.getServer().getWorld( target_world).getSpawnLocation().getX(),
-						this.getServer().getWorld( target_world).getSpawnLocation().getY(),
-						this.getServer().getWorld( target_world).getSpawnLocation().getZ());
+			}else{
+				String target=MYSQL_CONNECTOR_OPTIONS.get_default_world();
+				Location templocation = new Location(this.getServer().getWorld(target),
+						this.getServer().getWorld( target).getSpawnLocation().getX(),
+						this.getServer().getWorld( target).getSpawnLocation().getY(),
+						this.getServer().getWorld( target).getSpawnLocation().getZ());
 				event.getPlayer().teleport(templocation);
 			}
 
@@ -107,10 +101,8 @@ public class Person_splitter extends JavaPlugin implements Listener {
 					.kickPlayer("Du musst dich auf www.tyrolyean.tk registrieren bevor du  Server betreten kannst!");
 		}
 	}
-
-	@EventHandler(priority = EventPriority.LOW)
-	public void PlayerQuit(PlayerQuitEvent event) {
-
-	}
+	//Variables that are globally needed and defined first in the onEnable
+public static Server server;
+public static int server_id;
 
 }
