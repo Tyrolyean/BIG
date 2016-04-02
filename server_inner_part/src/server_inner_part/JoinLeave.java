@@ -1,9 +1,11 @@
 package server_inner_part;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 //import java.nio.charset.Charset;
 //import java.nio.file.Files;
@@ -199,8 +201,13 @@ public static Server server;
 		} else if (cmd.getName().equalsIgnoreCase("createserver")) {
 			if (sender == this.getServer().getConsoleSender()) {
 				try {
+					//Retrieve the uuid out of the Playername
+					URL uuidresolver=new URL("https://api.mojang.com/users/profiles/minecraft/"+args[2]);
+					BufferedReader input =new BufferedReader(new InputStreamReader(uuidresolver.openConnection().getInputStream()));
+					String rawuuid=input.readLine();
+					String uuid=rawuuid.substring(7,39);
 					plugin=this;
-					MYSQL_CONNECTOR_CREATE_SERVER.get_new(args[0], args[1], args[2]);
+					MYSQL_CONNECTOR_CREATE_SERVER.get_new(args[0], args[1], uuid);//MYSQL_CONNECTOR WITH FTP and SSH 
 				} catch (Exception e) {
 					sender.sendMessage("Too few Arguments!");
 

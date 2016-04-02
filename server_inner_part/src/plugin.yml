@@ -22,6 +22,6 @@ commands:
       permission-message: You don't have <permission>
    createserver:
       description: Creates a new Server.
-      usage: /<command> <world_Name> <world_Type> <world_owner_uuid>
+      usage: /<command> <world_Name> <world_Type> <world_owner>
       permission: big.create
       permission-message: Don't do that...
