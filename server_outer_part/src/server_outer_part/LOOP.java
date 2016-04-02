@@ -39,7 +39,7 @@ public class LOOP {
 				try{
 					
 					for(int i1=1;i1<worlds.size()-1;i1+=6){
-						WorldCreator c = new WorldCreator(worlds.get(i1+1)+worlds.get(i1));
+						WorldCreator c = new WorldCreator(worlds.get(i1+5)+worlds.get(i1));
 						if (worlds.get(i1+5).equals("normal"))
 							c.type(WorldType.NORMAL);
 						else if (worlds.get(i1+5).equals("flat")) {

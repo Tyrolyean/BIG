@@ -151,11 +151,10 @@ public class MYSQL_CONNECTOR_OPTIONS {
 	}
 
 	public static List<String> get_worlds() {
-
+		List<String> returner = null;
 		Boolean loop = false;
 		do {
 			loop=false;
-			List<String> returner = null;
 			returner = worlds();
 			long actual_unix = System.currentTimeMillis() / 1000L;
 			try {
@@ -204,7 +203,7 @@ public class MYSQL_CONNECTOR_OPTIONS {
 			} // End try
 		}while(loop);
 
-		return null;
+		return returner;
 
 	}
 
@@ -238,7 +237,7 @@ public class MYSQL_CONNECTOR_OPTIONS {
 			stmt = conn.createStatement();
 			String sql;
 			sql = "SELECT * FROM worlds WHERE server_id=" + Person_splitter.server_id
-					+ "ORDER BY server_internal_number";
+					+ " ORDER BY server_internal_number";
 			System.out.print(sql);
 			ResultSet rs = stmt.executeQuery(sql);
 			sql = null;
@@ -247,7 +246,7 @@ public class MYSQL_CONNECTOR_OPTIONS {
 			while (rs.next()) {
 				// Retrieve by column name
 				returner.set(0, "true");
-				returner.add(rs.getString("name"));
+				returner.add(rs.getString("world_name"));
 				returner.add(rs.getString("expires"));
 				returner.add(rs.getString("owner"));
 				returner.add(rs.getString("gamemode"));
@@ -256,7 +255,7 @@ public class MYSQL_CONNECTOR_OPTIONS {
 			} // Got the returner
 			try {// For debug print the list
 				if (Person_splitter.debug) {
-					for (int i = 0; i <= returner.size(); i++) {
+					for (int i = 0; i < returner.size(); i++) {
 						System.out.println(returner.get(i));
 					}
 				}
