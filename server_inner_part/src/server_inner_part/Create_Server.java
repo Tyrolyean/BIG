@@ -534,14 +534,15 @@ public class Create_Server extends JavaPlugin {
 						channel.setCommand("screen -dmS "+id+" "+path + id + "/start.sh");
 						BufferedReader in = new BufferedReader(new InputStreamReader(channel.getInputStream()));
 						channel.connect();
+						Thread.sleep(100L);
 						if (JoinLeave.debug()) {
 							System.out.println(
-									"command for starting server was executed with code: " + channel.getExitStatus());
+									"Command for starting server "+channel.getId()+" was executed with code: " + channel.getExitStatus());
 						}
 						if (channel.getExitStatus() == 0 || channel.isClosed() || channel.isEOF()) {
 							if (JoinLeave.debug()) {
 
-								System.out.println("Successfully connected to the Client. Command was executed!");
+								System.out.println("Successfully connected to the Server. Command was executed!");
 							}
 						}
 						try {
@@ -553,6 +554,9 @@ public class Create_Server extends JavaPlugin {
 						System.out.println(
 								"SSH-Connection to Host " + server.getRemoteAddress() + " but got exception " + e);
 					} catch (IOException e1) {
+						e1.printStackTrace();
+					} catch (InterruptedException e1) {
+						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					} finally {
 						if (channel != null)

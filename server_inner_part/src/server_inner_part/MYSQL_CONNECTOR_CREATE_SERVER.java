@@ -121,7 +121,7 @@ public class MYSQL_CONNECTOR_CREATE_SERVER {
 					stmt.execute("INSERT INTO server_location (port,adress,owner,location,name) VALUES ('"
 							+ port + "','" + adress + "','" + uuid + "','" + direction + "','" + name
 							+ "') ");
-					stmt.execute("INSERT INTO worlds (world_name,server_id,owner,expires,location,world_type,server_internal_number) VALUES('"+name+"',"+server_id+",'"+uuid+"',"+unixTime+",'"+adress+"','"+type+"',"+1+")");
+					stmt.execute("INSERT INTO worlds (world_name,server_id,owner,expires,location,world_type,server_internal_number) VALUES('"+name+"',"+server_id+",'"+uuid+"',"+unixTime+",'"+direction+1+name+"','"+type+"',"+1+")");
 					if (JoinLeave.debug()) {
 						System.out.println("Created the Server and the 1st spawn world in the MYSQL-Database");
 					}
@@ -134,7 +134,7 @@ public class MYSQL_CONNECTOR_CREATE_SERVER {
 					while(rs.next()){
 						internal_number=rs.getInt(1);
 					}
-					stmt.execute("INSERT INTO worlds (world_name,server_id,owner,expires,location,world_type,server_internal_number) VALUES('"+name+"',"+server_id+",'"+uuid+"',"+unixTime+",'"+adress+"','"+type+"',"+internal_number+")");
+					stmt.execute("INSERT INTO worlds (world_name,server_id,owner,expires,location,world_type,server_internal_number) VALUES('"+name+"',"+server_id+",'"+uuid+"',"+unixTime+",'"+direction+internal_number+name+"','"+type+"',"+internal_number+")");
 					if(JoinLeave.debug()){
 						System.out.println("");
 					}

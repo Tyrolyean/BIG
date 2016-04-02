@@ -2,6 +2,8 @@ name: Big_Plugin
 main: server_inner_part.JoinLeave
 version: _ALPHA.2.0
 author: Tyrolyean
+prefix: HAL 2
+website: www.Tyrolyean.tk
 commands:
    ping:
       description: The ping of the player.
