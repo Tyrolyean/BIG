@@ -113,9 +113,15 @@ public class MYSQL_CONNECTOR_CREATE_SERVER {
 				rs = stmt.executeQuery("SELECT id FROM server_location WHERE owner ='" + uuid + "'");
 				int server_id = 0;
 				while (rs.next()) {
-					id = rs.getInt(1);
+					server_id = rs.getInt(1);
+				}
+				if(JoinLeave.debug()){
+					System.out.println("Retrievet Server_id from Player with: "+server_id);
 				}
 				if (server_id == 0) {//If no Server of the player exists then create a new one
+					if(JoinLeave.debug()){
+						System.out.println("Creating a new Server for player with uuid "+uuid);
+					}
 					Create_Server.main(port, sid, username, type, direction, server, username, password);
 					direction = direction + sid + "/";
 					stmt.execute("INSERT INTO server_location (port,adress,owner,location,name) VALUES ('"
@@ -136,7 +142,7 @@ public class MYSQL_CONNECTOR_CREATE_SERVER {
 					}
 					stmt.execute("INSERT INTO worlds (world_name,server_id,owner,expires,location,world_type,server_internal_number) VALUES('"+name+"',"+server_id+",'"+uuid+"',"+unixTime+",'"+direction+internal_number+name+"','"+type+"',"+internal_number+")");
 					if(JoinLeave.debug()){
-						System.out.println("");
+						System.out.println("Added world to existing Server with Server_id "+server_id+" and Server internal number "+internal_number);
 					}
 				}
 			} catch (Exception e) {
