@@ -1,7 +1,10 @@
+load: STARTUP 
 name: Big_Plugin_outer_part
 main: server_outer_part.Person_splitter
 version: _ALPHA.2.0
 author: Tyrolyean
+prefix: HAL 1
+website: www.Tyrolyean.tk
 commands:
    ping:
       description: The ping of the player.
