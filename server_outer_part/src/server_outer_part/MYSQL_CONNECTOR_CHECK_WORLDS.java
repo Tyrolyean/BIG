@@ -87,7 +87,7 @@ public class MYSQL_CONNECTOR_CHECK_WORLDS {
 
 		Connection conn = null;
 		Statement stmt = null;
-		final String DB_URL = "jdbc:mysql://" + Person_splitter.database() + "/server_parts";
+		final String DB_URL = "jdbc:mysql://" + Person_splitter.database + "/server_parts";
 
 		// Database credentials
 		final String USER = "server_parts";
@@ -149,7 +149,7 @@ public class MYSQL_CONNECTOR_CHECK_WORLDS {
 		String ip = i;
 		Connection conn = null;
 		Statement stmt = null;
-		final String DB_URL = "jdbc:mysql://" + Person_splitter.database() + "/server_parts";
+		final String DB_URL = "jdbc:mysql://" + Person_splitter.database + "/server_parts";
 
 		// Database credentials
 		final String USER = "server_parts";
@@ -209,7 +209,7 @@ public class MYSQL_CONNECTOR_CHECK_WORLDS {
 		String worlds[] = new String[16];
 		Connection conn = null;
 		Statement stmt = null;
-		final String DB_URL = "jdbc:mysql://" + Person_splitter.database() + "/server_parts";
+		final String DB_URL = "jdbc:mysql://" + Person_splitter.database + "/server_parts";
 
 		// Database credentials
 		final String USER = "server_parts";

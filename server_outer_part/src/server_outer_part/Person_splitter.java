@@ -1,8 +1,8 @@
 package server_outer_part;
 
-import java.net.InetAddress;
 import java.net.Socket;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.bukkit.Location;
 import org.bukkit.Server;
@@ -28,15 +28,15 @@ public class Person_splitter extends JavaPlugin implements Listener {
 
 	// Global variables
 	//Database Location
-	public static String database() {
-		return "192.168.0.2";
-	}
+	public static String database= "192.168.0.2";
+	public static Logger logger;
 	//Debug
 	public static boolean debug =true;
 	// End of variables
 
 	@Override
 	public void onEnable() {
+		logger=this.getLogger();
 		System.out.println("©Tyrolyean 2016 Made for Ownworld");
 		server=this.getServer();
 		server_id=MYSQL_CONNECTOR_OPTIONS.get_id();
@@ -62,7 +62,7 @@ public class Person_splitter extends JavaPlugin implements Listener {
 		//Register all the worlds that exists at the beginning to do the startup faster
 		List<String> list =MYSQL_CONNECTOR_OPTIONS.get_worlds();
 		for(int i1=1;i1<list.size()-1;i1+=6){
-		WorldCreator c = new WorldCreator(list.get(i1+1)+list.get(i1));
+		WorldCreator c = new WorldCreator(list.get(i1+5)+list.get(i1));
 		if (list.get(i1+5).equals("normal"))
 			c.type(WorldType.NORMAL);
 		else if (list.get(i1+5).equals("flat")) {
@@ -89,23 +89,8 @@ public class Person_splitter extends JavaPlugin implements Listener {
 	}
 	@Override
 	public void onDisable() {
-		String DATA[] = new String[2];
-		String i = null;
-	       try {
-	    	   Socket s = new Socket("192.168.0.1",80);
-	    	   s.getLocalAddress();
-			i=InetAddress.getLocalHost().getHostAddress();
-	    	   s.close();
 
-	    	   
-	       }
-	       catch(Exception e){e.printStackTrace();}
-	       if(debug){
-	    	   System.out.println("Retrievt ip ="+i);
-	       }
-		DATA[0] = i;
-		DATA[1] = Integer.toString(this.getServer().getPort());
-		this.getLogger().info(MYSQL_CONNECTOR_UNREGISTER_SERVER.main(DATA));
+		this.getLogger().info(MYSQL_CONNECTOR_UNREGISTER_SERVER.main());
 	}
 	@EventHandler(priority = EventPriority.LOW)
 	public void PlayerJoin(PlayerJoinEvent event) {
@@ -124,7 +109,7 @@ public class Person_splitter extends JavaPlugin implements Listener {
 						"Es befinden sich momentan zu viele Spieler in dieser Welt!");
 			}else{
 				this.getServer().broadcastMessage(event.getPlayer().getDisplayName()+" hat den Server betreten!");
-				String target=MYSQL_CONNECTOR_OPTIONS.get_default_world();
+				String target=MYSQL_CONNECTOR_OPTIONS.get_spawn_world(event.getPlayer());
 				Location templocation = new Location(this.getServer().getWorld(target),
 						this.getServer().getWorld( target).getSpawnLocation().getX(),
 						this.getServer().getWorld( target).getSpawnLocation().getY(),

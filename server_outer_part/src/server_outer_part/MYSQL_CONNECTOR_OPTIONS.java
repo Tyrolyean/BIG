@@ -10,16 +10,14 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
 import org.bukkit.entity.Player;
-import org.bukkit.event.world.WorldSaveEvent;
-
-import com.google.common.io.Files;
 
 public class MYSQL_CONNECTOR_OPTIONS {
 
 	// JDBC driver name and database URL
 	static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
-	static final String DB_URL = "jdbc:mysql://" + Person_splitter.database() + "/server_parts";
+	static final String DB_URL = "jdbc:mysql://" + Person_splitter.database + "/server_parts";
 
 	// Database credentials
 	static final String USER = "server_parts";
@@ -154,7 +152,7 @@ public class MYSQL_CONNECTOR_OPTIONS {
 		List<String> returner = null;
 		Boolean loop = false;
 		do {
-			loop=false;
+			loop = false;
 			returner = worlds();
 			long actual_unix = System.currentTimeMillis() / 1000L;
 			try {
@@ -169,21 +167,60 @@ public class MYSQL_CONNECTOR_OPTIONS {
 				// Executing query
 				stmt = conn.createStatement();
 				for (int i = 2; i < returner.size(); i += 6) {
-					if (Long.parseLong(returner.get(i)) < actual_unix) {// World is too old
+					if (Long.parseLong(returner.get(i)) < actual_unix) {// World
+																		// is
+																		// too
+																		// old
 						loop = true;
 						if (Person_splitter.debug) {
 							System.out.println("World with the internal_id " + returner.get(i + 4)
 									+ " was removed from the Server!");
 						}
-
-						WorldSaveEvent event = new WorldSaveEvent(
-								Person_splitter.server.getWorld(returner.get(i + 4) + returner.get(i - 1)));
-						Person_splitter.server.getPluginManager().callEvent(event);
+						Person_splitter.server.getWorld(returner.get(i + 4) + returner.get(i - 1)).save();
 						List<Player> players = Person_splitter.server
 								.getWorld(returner.get(i + 4) + returner.get(i - 1)).getPlayers();
 						for (int ii = 0; i <= players.size(); i++) {
 							players.get(ii).kickPlayer(
 									"Deine Welt ist abgelaufen, bitte lade sie dir auf www.ownworld.eu herunter.");
+						}
+						if (Person_splitter.debug) {
+							Person_splitter.logger.info("If World is defaultworld change it!");
+						}
+						String ip = null;
+						try {
+							Socket s = new Socket("192.168.0.1", 80);
+							ip = s.getLocalAddress().getHostAddress();
+							s.close();
+
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+
+						ResultSet rss = stmt.executeQuery(
+								"SELECT default_world FROM server_location WHERE id=" + Person_splitter.server_id);
+						int default_world = 0;
+						while (rss.next()) {
+							default_world = rss.getInt(1);
+						}
+						if (default_world == 0) {
+							if (Person_splitter.debug) {
+
+								Person_splitter.logger.info("This server is configured to contain standalone worlds!");
+							}
+						} else if (default_world == Integer.parseInt(returner.get(i + 4))) {
+							if (Person_splitter.debug) {
+								Person_splitter.logger.info(
+										"The Deleted world was the default world for this Server. Auto-replacing the world");
+							}
+							ResultSet rsss = stmt.executeQuery(
+									"SELECT MIN(server_internal_number) WHERE server_id=" + Person_splitter.server_id
+											+ " AND server_internal_number NOT LIKE " + returner.get(i + 4));
+							int new_internal = 0;
+							while (rsss.next()) {
+								new_internal = rsss.getInt(1);
+							}
+							stmt.execute("UPDATE server_location SET default_world=" + new_internal
+									+ " WHERE server_id=" + Person_splitter.server_id);
 						}
 						Person_splitter.server.unloadWorld(returner.get(i + 4) + returner.get(i - 1), true);
 						File world = new File(new File(System.getProperty("user.dir")).getAbsolutePath() + "/"
@@ -193,15 +230,21 @@ public class MYSQL_CONNECTOR_OPTIONS {
 						if (!world_save.exists()) {
 							world_save.mkdirs();
 						}
-						Files.move(world, world_save);
-						stmt.execute("UPDATE worlds SET server_internal_number = 0 location ='"
-								+ world_save.getAbsolutePath() + "'");
+						if (new File(world_save.getAbsolutePath() + "/" + world.getName()).exists()) {
+							FileUtils.deleteDirectory(new File(world_save.getAbsolutePath() + "/" + world.getName()));
+						}
+						FileUtils.moveDirectory(world, new File(world_save.getAbsolutePath() + "/" + world.getName()));
+						stmt.execute("UPDATE worlds SET server_internal_number = 0 , server_id =0, server_ip='" + ip
+								+ "', location ='" + world_save.getAbsolutePath() + "/" + world.getName()
+								+ "' WHERE server_id=" + Person_splitter.server_id + " AND server_internal_number="
+								+ returner.get(i + 4));
 					}
 				}
 			} catch (Exception e) {
+				loop = false;
 				e.printStackTrace();
 			} // End try
-		}while(loop);
+		} while (loop);
 
 		return returner;
 
@@ -238,7 +281,9 @@ public class MYSQL_CONNECTOR_OPTIONS {
 			String sql;
 			sql = "SELECT * FROM worlds WHERE server_id=" + Person_splitter.server_id
 					+ " ORDER BY server_internal_number";
-			System.out.print(sql);
+			if (Person_splitter.debug) {
+				Person_splitter.logger.info(sql);
+			}
 			ResultSet rs = stmt.executeQuery(sql);
 			sql = null;
 			returner.add("false");
@@ -256,7 +301,7 @@ public class MYSQL_CONNECTOR_OPTIONS {
 			try {// For debug print the list
 				if (Person_splitter.debug) {
 					for (int i = 0; i < returner.size(); i++) {
-						System.out.println(returner.get(i));
+						Person_splitter.logger.info(returner.get(i));
 					}
 				}
 			} catch (Exception e) {
@@ -288,4 +333,44 @@ public class MYSQL_CONNECTOR_OPTIONS {
 		} // end try
 		return returner;
 	}// end main
+
+	public static String get_spawn_world(Player joiner) {
+		Connection conn = null;
+		java.sql.Statement stmt = null;
+		String returner=null;
+		try {
+			Class.forName("com.mysql.jdbc.Driver");
+			// Open connection
+			conn = DriverManager.getConnection(DB_URL, USER, PASS);
+			stmt=conn.createStatement();
+			ResultSet rs=stmt.executeQuery("SELECT default_world FROM server_location WHERE id ="+Person_splitter.server_id);
+			int default_world=0;
+			while(rs.next()){
+				default_world=rs.getInt(1);
+			}
+			if(default_world==0){
+				rs=null;
+				rs=stmt.executeQuery("SELECT * FROM player_transmission WHERE username='"+joiner.getDisplayName()+"'");
+				int internal=0;
+				while(rs.next()){
+					internal=rs.getInt("target_world");
+				}
+				String name=null;
+				rs=null;
+				rs=stmt.executeQuery("SELECT world_name FROM worlds WHERE server_internal_number ="+internal+" AND server_id ="+Person_splitter.server_id);
+				while(rs.next()){
+					name=rs.getString(1);
+				}
+				returner=internal+name;
+			}else{
+				returner=get_default_world();
+			}
+			conn.close();
+			stmt.close();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return returner;
+	}
 }

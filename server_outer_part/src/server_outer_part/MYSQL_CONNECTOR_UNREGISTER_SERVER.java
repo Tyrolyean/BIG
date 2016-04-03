@@ -6,17 +6,17 @@ import java.sql.SQLException;
 import com.mysql.jdbc.Statement;
 
 public class MYSQL_CONNECTOR_UNREGISTER_SERVER {
-	public static String main(String input[]){
+	public static String main(){
 		
 		java.sql.Connection con = null;
-		String url = "jdbc:mysql://"+Person_splitter.database()+"/server_parts";
+		String url = "jdbc:mysql://"+Person_splitter.database+"/server_parts";
 		String user = "server_parts";
 		String password = "server_parts";
 
 		try {
 		     con = DriverManager.getConnection(url, user, password);
 		     Statement st = (Statement) con.createStatement(); 
-		     st.executeUpdate("UPDATE server_location SET online = 0 WHERE adress='"+input[0]+"' AND port ='"+input[1]+"'");
+		     st.executeUpdate("UPDATE server_location SET online = 0 WHERE id='"+Person_splitter.server_id+"'");
 		     con.close();
 		     return "No error occured on Disabling Big plugin"; 
 		}

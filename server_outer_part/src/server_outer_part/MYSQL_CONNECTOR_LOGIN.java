@@ -5,7 +5,7 @@ import java.sql.*;
 public class MYSQL_CONNECTOR_LOGIN {
 	// JDBC driver name and database URL
 	static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
-	static final String DB_URL = "jdbc:mysql://"+Person_splitter.database()+"/acounts";
+	static final String DB_URL = "jdbc:mysql://"+Person_splitter.database+"/acounts";
 
 	// Database credentials
 	static final String USER = "minecraft";

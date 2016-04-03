@@ -5,6 +5,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import org.bukkit.Server;
+import org.bukkit.World;
 import org.bukkit.WorldCreator;
 import org.bukkit.WorldType;
 import org.bukkit.World.Environment;
@@ -30,52 +31,67 @@ public class LOOP {
 			@Override
 			public void run() {
 				// All things put in here are checked every 30 Seconds!
-				//Get world list 
-				Person_splitter.worlds=MYSQL_CONNECTOR_OPTIONS.get_worlds();
-				List<String> worlds=Person_splitter.worlds;
+				// Get world list
+				Person_splitter.worlds = MYSQL_CONNECTOR_OPTIONS.get_worlds();
+				List<String> worlds = Person_splitter.worlds;
 				if (Person_splitter.debug) {
-					System.out.println("Now Checking for information for worlds again!");
+					person_splitter.getLogger().info("Now Checking for information for worlds again!");
 				}
-				try{
-					
-					for(int i1=1;i1<worlds.size()-1;i1+=6){
-						WorldCreator c = new WorldCreator(worlds.get(i1+5)+worlds.get(i1));
-						if (worlds.get(i1+5).equals("normal"))
-							c.type(WorldType.NORMAL);
-						else if (worlds.get(i1+5).equals("flat")) {
-							c.type(WorldType.FLAT);
-						}else if(worlds.get(i1+5).equals("nether")){
-							c.environment(Environment.NETHER);
-						}else if(worlds.get(i1+5).equals("end")){
-							c.environment(Environment.THE_END);
-						}
-						// Create the world async
-						server.getScheduler().runTaskLater(person_splitter, new Runnable() {
-							@Override
-							public void run() {
-								if (Person_splitter.debug) {
-										System.out.println("Creating world " + c.toString());
-									System.out.println(server.createWorld(c));
-									System.out.println("Done!");
-								} else {
-									server.createWorld(c);
-								}
+				try {
+
+					for (int i1 = 1; i1 < worlds.size() - 1; i1 += 6) {
+
+						Boolean worldexists = false;
+
+						try {
+							World worldtemp = Person_splitter.server.getWorld(worlds.get(i1 + 5) + worlds.get(i1));
+							if(worldtemp!=null){
+								worldexists=true;
 							}
-						}, 0L);// End of creation
-						}//End of for
-					if(Person_splitter.debug){
-						System.out.println("Created all new worlds!");
+						} catch (Exception e) {
+							worldexists = false;
+						}
+						if (!worldexists) {
+							WorldCreator c = new WorldCreator(worlds.get(i1 + 5) + worlds.get(i1));
+							if (worlds.get(i1 + 5).equals("normal"))
+								c.type(WorldType.NORMAL);
+							else if (worlds.get(i1 + 5).equals("flat")) {
+								c.type(WorldType.FLAT);
+							} else if (worlds.get(i1 + 5).equals("nether")) {
+								c.environment(Environment.NETHER);
+							} else if (worlds.get(i1 + 5).equals("end")) {
+								c.environment(Environment.THE_END);
+							}
+							// Create the world async
+							server.getScheduler().runTaskLater(person_splitter, new Runnable() {
+								@Override
+								public void run() {
+									if (Person_splitter.debug) {
+										person_splitter.getLogger().info("Creating world " + c.name());
+										person_splitter.getLogger().info("" + server.createWorld(c));
+										person_splitter.getLogger().info("Done!");
+									} else {
+										server.createWorld(c);
+									}
+								}
+							}, 0L);// End of creation
+						} else {
+							if (Person_splitter.debug) {
+								Person_splitter.logger
+										.info("world " + worlds.get(i1 + 5) + worlds.get(i1) + " already existing!");
+							}
+						}
+					} // End of for
+					if (Person_splitter.debug) {
+						person_splitter.getLogger()
+								.info("Created all new worlds! Becasuse of run task later creation may be later!");
 					}
-					//Unloading of the world happens in the MYSQL_CONNECTOR_OPTIONS.worlds() automatically	
-				}catch(Exception e){
+					// Unloading of the world happens in the
+					// MYSQL_CONNECTOR_OPTIONS.worlds() automatically
+				} catch (Exception e) {
 					e.printStackTrace();
 				}
-				
-				
-				
-				
-				
-				
+
 			}
 		}, 30000, 30000);
 

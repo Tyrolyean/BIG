@@ -25,7 +25,7 @@ public class MYSQL_CONNECTOR_REGISTER_SERVER{
 		int id =0;
 		Connection conn = null;
 		Statement stmt = null;
-		final String DB_URL = "jdbc:mysql://"+Person_splitter.database()+"/server_parts";
+		final String DB_URL = "jdbc:mysql://"+Person_splitter.database+"/server_parts";
 		System.out.println(DB_URL);
 		// Database credentials
 		final String USER = "server_parts";
@@ -84,7 +84,7 @@ public class MYSQL_CONNECTOR_REGISTER_SERVER{
 	}
 	static Boolean set_online(String input[]){
 		java.sql.Connection con = null;
-		String url = "jdbc:mysql://"+Person_splitter.database()+"/server_parts";
+		String url = "jdbc:mysql://"+Person_splitter.database+"/server_parts";
 		String user = "server_parts";
 		String password = "server_parts";
 
@@ -105,7 +105,7 @@ public class MYSQL_CONNECTOR_REGISTER_SERVER{
 	static Boolean create(String input[]){
 		
 		java.sql.Connection con = null;
-		String url = "jdbc:mysql://"+Person_splitter.database()+"/server_parts";
+		String url = "jdbc:mysql://"+Person_splitter.database+"/server_parts";
 		String user = "server_parts";
 		String password = "server_parts";
 
