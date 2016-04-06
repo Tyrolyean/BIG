@@ -9,6 +9,6 @@ import net.md_5.bungee.event.EventHandler;
 public class bigListener implements Listener {
     @EventHandler
     public void onServerConnected(final ServerConnectedEvent event) {
-        event.getPlayer().sendMessage(new ComponentBuilder("Welcome to " + event.getServer().getInfo().getName() + "!").color(ChatColor.GREEN).create());
+        event.getPlayer().sendMessage(new ComponentBuilder("Welcome to " + event.getServer().getInfo().getName() + "! You have a ping of "+event.getPlayer().getPing()).color(ChatColor.GREEN).create());
     }
 }

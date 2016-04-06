@@ -47,44 +47,26 @@ public class Command_connect extends Command {
 				hub_exists = false;
 			}
 			if (hub_exists) {
-				// Go on with code
-				String info[];
+				// Go on with cODE
 				try {
-					info = MYSQL_CONNECTOR_GET_WORLD_NAME.main(Integer.parseInt(args[0]));
+					target = ProxyServer.getInstance().getServerInfo("s" + args[0]);
 				} catch (Exception e) {
-					info = null;
+					target = null;
 				}
-				if (big.debug) {// Show debug messages
-					System.out.println("Got world information:");
-					try {
-						System.out.println(info[0]);
-						System.out.println(info[1]);
-						System.out.println(info[2]);
+				if (target != null) {// if server exists
+					Boolean permission = false;
+					try {// get permission for joining world
+						permission = MYSQL_CONNECTOR_GET_PERMISSION.main(
+								player.getUniqueId().toString().replace('-', ' ').replaceAll("\\s", ""),
+								Integer.parseInt(args[0]));
 					} catch (Exception e) {
-						System.out.println(e);
+						permission = false;
 					}
-				} // End debug messages
-				if (!info[0].equals(null)) {
 					try {
-						target = ProxyServer.getInstance().getServerInfo("s" + info[1]);
-					} catch (Exception e) {
-						target = null;
-					}
-					if (target !=null) {// if server exists
-						Boolean permission = false;
-						try {// get permission for joining world
-							permission = MYSQL_CONNECTOR_GET_PERMISSION.main(
-									player.getUniqueId().toString().replace('-', ' ').replaceAll("\\s", ""),
-									Integer.parseInt(args[0]));
-						} catch (Exception e) {
-							permission = false;
-						}
-						try{
 						if (permission) {// if player is allowed to join world
-							// Register transmission
-							System.out.println(MYSQL_CONNECTOR_PLAYER_TRANSMISSION.main(player.getDisplayName(),
-									info[0] + info[2]));
+							// Registed Transmission to world with server_internal_number
 							// Connect to Server
+							MYSQL_CONNECTOR_PLAYER_TRANSMISSION.main(player.getDisplayName(), args[0]);
 							player.connect(target);
 
 						} else {// send no permission error
@@ -92,21 +74,19 @@ public class Command_connect extends Command {
 									new ComponentBuilder("Dir wurde noch nicht die Erlaubnis zum joinen erteilt!")
 											.color(ChatColor.WHITE).create());
 						} // end permission check
-						}catch(Exception e){//something always went wrong when checking for permission
-							player.sendMessage(
-									new ComponentBuilder("Dir wurde noch nicht die Erlaubnis zum joinen erteilt!")
-											.color(ChatColor.WHITE).create());
-						}
-
-					} else {// send error-Message for not existing Server
+					} catch (Exception e) {// something always went wrong when
+											// checking for permission
 						player.sendMessage(
-								new ComponentBuilder("Der Server ist bisher noch nicht gestartet: " + "s" + info[1])
+								new ComponentBuilder("Dir wurde noch nicht die Erlaubnis zum joinen erteilt!")
 										.color(ChatColor.WHITE).create());
-					} // end server exists
-				} else {// Send error for not existing world_id
-					player.sendMessage(new ComponentBuilder("Diese Welt ist bisher noch nicht registriert!")
-							.color(ChatColor.WHITE).create());
-				} // end world exists
+					}
+
+				} else {// send error-Message for not existing Server
+					player.sendMessage(
+							new ComponentBuilder("Der Server ist bisher noch nicht gestartet: " + "s" + args[0])
+									.color(ChatColor.WHITE).create());
+				} // end server exists
+
 			} else {
 				// Send fatal error Message
 				player.sendMessage(new ComponentBuilder("Bitte verwende diesen Command nur auf dem hub!")
