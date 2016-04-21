@@ -24,7 +24,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -35,69 +35,55 @@ public class JoinLeave extends JavaPlugin implements Listener {
 	public Location Lobby = new Location(this.getServer().getWorld("world"), 0, 0, 0);
 
 	// Global used Mysql-Database
-	public static String mysql() {
-		return "192.168.0.2";
-	}
-public static Server server;
+	public static String mysql = "192.168.0.2";
+	public static Server server;
+
 	// Global Debug mode
 	public static Boolean debug() {
 		return true;
 	}
+
 	public static Plugin plugin;
+
 	// onEnable
 	@Override
-	public  void onEnable() {
-		server=this.getServer();
-        try {
-            final File[] libs = new File[] {
-                    new File(getDataFolder(), "commons-net-3.4.jar"),
-                    new File(getDataFolder(), "jsch-0.1.53.jar")};
-            for (final File lib : libs) {
-                if (!lib.exists()) {
-                    JarUtils.extractFromJar(lib.getName(),
-                            lib.getAbsolutePath());
-                }
-            }
-            for (final File lib : libs) {
-                if (!lib.exists()) {
-                    getLogger().warning(
-                            "There was a critical error loading My plugin! Could not find lib: "
-                                    + lib.getName());
-                    Bukkit.getServer().getPluginManager().disablePlugin(this);
-                    return;
-                }
-                addClassPath(JarUtils.getJarUrl(lib));
-            }
-        } catch (final Exception e) {
-            e.printStackTrace();
-        }
-		
-		
-		
+	public void onEnable() {
+		server = this.getServer();
+		this.getLogger().info("Loading BIG-Plugin. ©2016|Tyrolyean. Al Rights Reserved. ");
+		// importing Javaprograms :
+		// jsch:
+		// At the Moment Version 0.1.53
+		// Needed to start new Servers over the ssh Protocol
+		// apache.commons.net
+		// Needet for sending mails and transfering files over ftp
+		// In future I will transfer Data over a Socket
+		// To prevent the usage of the apache commons
+
+		try {
+			final File[] libs = new File[] { new File(getDataFolder(), "commons-net-3.4.jar"),
+					new File(getDataFolder(), "jsch-0.1.53.jar") };
+			for (final File lib : libs) {
+				if (!lib.exists()) {
+					JarUtils.extractFromJar(lib.getName(), lib.getAbsolutePath());
+				}
+			}
+			for (final File lib : libs) {
+				if (!lib.exists()) {
+					this.getLogger()
+							.warning("There was a critical error loading BIG! Could not find lib: " + lib.getName());
+					Bukkit.getServer().getPluginManager().disablePlugin(this);
+					return;
+				}
+				addClassPath(JarUtils.getJarUrl(lib));
+			}
+		} catch (final Exception e) {
+			e.printStackTrace();
+		}
+
 		getServer().getPluginManager().registerEvents(this, this);
 		File f = new File(System.getProperty("user.dir") + "/plugins/big/config.yml");
 		if (f.exists() && !f.isDirectory()) {
 			this.getServer().broadcastMessage("File config.yml exists! Getting information from there!");
-			// Reading data from file
-			// Path filePath = new File(System.getProperty("user.dir") +
-			// "/plugins/big/config.yml").toPath();
-			// Charset charset = Charset.defaultCharset();
-			// List<String> stringList;
-			// try {
-			// stringList = Files.readAllLines(filePath, charset);
-			// String[] caught = stringList.toArray(new String[] {});
-			/*
-			 * double lobbyy = Double.parseDouble(caught[1].replace("lobby_x: ",
-			 * "")); double lobbyx = Double.parseDouble(caught[2].replace(
-			 * "lobby_y: ", "")); double lobbyz =
-			 * Double.parseDouble(caught[3].replace("lobby_z: ", "")); Lobby =
-			 * new Location(this.getServer().getWorld(caught[4].replace(
-			 * "lobby_world: ", "")), lobbyy, lobbyx, lobbyz); 
-			 */
-			// } catch (IOException e) {
-			// TODO Auto-generated catch block
-			// e.printStackTrace();
-			// }
 		} else {
 			f.getParentFile().mkdirs();
 			try {
@@ -118,25 +104,23 @@ public static Server server;
 			}
 		}
 	}
-    private void addClassPath(final URL url) throws IOException {
-        final URLClassLoader sysloader = (URLClassLoader) ClassLoader
-                .getSystemClassLoader();
-        final Class<URLClassLoader> sysclass = URLClassLoader.class;
-        try {
-            final Method method = sysclass.getDeclaredMethod("addURL",
-                    new Class[] { URL.class });
-            method.setAccessible(true);
-            method.invoke(sysloader, new Object[] { url });
-        } catch (final Throwable t) {
-            t.printStackTrace();
-            throw new IOException("Error adding " + url
-                    + " to system classloader");
-        }
-    }
-	// Joining
+
+	private void addClassPath(final URL url) throws IOException {
+		final URLClassLoader sysloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+		final Class<URLClassLoader> sysclass = URLClassLoader.class;
+		try {
+			final Method method = sysclass.getDeclaredMethod("addURL", new Class[] { URL.class });
+			method.setAccessible(true);
+			method.invoke(sysloader, new Object[] { url });
+		} catch (final Throwable t) {
+			t.printStackTrace();
+			throw new IOException("Error adding " + url + " to system classloader");
+		}
+	}
+
+	// Using Playr Login event to keep Datastream low
 	@EventHandler(priority = EventPriority.LOW)
-	public void PlayerJoin(PlayerJoinEvent event) {
-		event.setJoinMessage(null);
+	public void onPlayerLoginEvent(PlayerLoginEvent event) {
 		MYSQL_CONNECTOR_LOGIN mysql = new MYSQL_CONNECTOR_LOGIN();
 		int id = 0;
 		id = mysql.main(event.getPlayer().getUniqueId().toString().replace('-', ' ').replaceAll("\\s", ""));
@@ -171,6 +155,33 @@ public static Server server;
 			}
 			sender.sendMessage("pong");
 		}
+		// RAM-UPGRADE
+		else if (cmd.getName().equalsIgnoreCase("ramupgrade")) {
+			if (sender == this.getServer().getConsoleSender()) {
+				URL uuidresolver;
+				try {
+					uuidresolver = new URL("https://api.mojang.com/users/profiles/minecraft/" + args[2]);
+
+					BufferedReader input = new BufferedReader(
+							new InputStreamReader(uuidresolver.openConnection().getInputStream()));
+					String rawuuid = input.readLine();
+					String uuid = rawuuid.substring(7, 39);
+					int RAM = 0;
+					try {
+						RAM = Integer.parseInt(args[1]);
+					} catch (Exception e) {
+						this.getLogger().warning(e.getMessage());
+					}
+					MYSQL_CONNECTOR_SERVER.upgrade_RAM(RAM, uuid);
+
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+			} else {
+				sender.sendMessage("Das ist dir nicht gestattet!");
+			}
+		}
 		// "Time"
 		else if (cmd.getName().equalsIgnoreCase("time")) {
 			sender.sendMessage("Time is relative!");
@@ -201,13 +212,18 @@ public static Server server;
 		} else if (cmd.getName().equalsIgnoreCase("createserver")) {
 			if (sender == this.getServer().getConsoleSender()) {
 				try {
-					//Retrieve the uuid out of the Playername
-					URL uuidresolver=new URL("https://api.mojang.com/users/profiles/minecraft/"+args[2]);
-					BufferedReader input =new BufferedReader(new InputStreamReader(uuidresolver.openConnection().getInputStream()));
-					String rawuuid=input.readLine();
-					String uuid=rawuuid.substring(7,39);
-					plugin=this;
-					MYSQL_CONNECTOR_CREATE_SERVER.get_new(args[0], args[1], uuid);//MYSQL_CONNECTOR WITH FTP and SSH 
+					// Retrieve the uuid out of the Playername
+					URL uuidresolver = new URL("https://api.mojang.com/users/profiles/minecraft/" + args[2]);
+					BufferedReader input = new BufferedReader(
+							new InputStreamReader(uuidresolver.openConnection().getInputStream()));
+					String rawuuid = input.readLine();
+					String uuid = rawuuid.substring(7, 39);
+					plugin = this;
+					MYSQL_CONNECTOR_SERVER.get_new(args[0], args[1], uuid);// MYSQL_CONNECTOR
+																			// WITH
+																			// FTP
+																			// and
+																			// SSH
 				} catch (Exception e) {
 					sender.sendMessage("Too few Arguments!");
 
@@ -218,5 +234,5 @@ public static Server server;
 		}
 		return false;
 	}
-	
+
 }
