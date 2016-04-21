@@ -1,6 +1,6 @@
 name: Big_Plugin
 main: server_inner_part.JoinLeave
-version: _ALPHA.2.0
+version: _ALPHA.2.5
 author: Tyrolyean
 prefix: HAL 2
 website: www.Tyrolyean.tk
@@ -25,3 +25,6 @@ commands:
       usage: /<command> <world_Name> <world_Type> <world_owner>
       permission: big.create
       permission-message: Don't do that...
+   ramupgrade:
+      description: Gives a Server more Ram.
+      usage: /<command> <playername> <RAM(MB)>

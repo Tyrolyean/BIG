@@ -72,7 +72,7 @@ public class Create_Server extends JavaPlugin {
 			if (JoinLeave.debug()) {
 				System.out.println("MCPATH='" + path_under.toString() + "");
 			}
-			writer.println("MAXHEAP=2048");
+			writer.println("MAXHEAP=512");
 			writer.println("MINHEAP=512");
 			writer.println("HISTORY=1024");
 			writer.println("INVOCATION=\"java -Xmx${MAXHEAP}M -Xms${MINHEAP}M -jar spigot.jar nogui\"");
@@ -238,8 +238,8 @@ public class Create_Server extends JavaPlugin {
 			writer.println("  whitelist: Du darfst diesen Server nicht betreten.");
 			writer.println("  unknown-command: Dieser Command ist nicht Registriert!");
 			writer.println("  server-full: Dieser Server ist voll!");
-			writer.println("  outdated-client: Wir verwenden die 1.9!");
-			writer.println("  outdated-server: Wir verwenden die 1.9!");
+			writer.println("  outdated-client: Wir verwenden die 1.9.2!");
+			writer.println("  outdated-server: Wir verwenden die 1.9.2!");
 			writer.println("  restart: Täglicher Neustart des Servers! Bitte Warten sie!");
 			writer.println("stats:");
 			writer.println("  disable-saving: false");
@@ -484,7 +484,7 @@ public class Create_Server extends JavaPlugin {
 			server.mode(FTP.BINARY_FILE_TYPE);
 
 			if (JoinLeave.debug()) {
-				System.out.println("now uploading spigot .yml with Options:");
+				System.out.println("now uploading spigot .jar with Options:");
 				System.out.println(server.getStatus());
 			}
 			server.storeFile(path + "/" + id + "/spigot.jar",
@@ -514,10 +514,10 @@ public class Create_Server extends JavaPlugin {
 			if (JoinLeave.debug()) {
 				System.out.println("Exited FTP-Conection " + server.getControlEncoding());
 			}
-			if(JoinLeave.debug()){
-				System.out.	println("Java plugin:  "+JoinLeave.plugin.getServer().getBukkitVersion());
+			if (JoinLeave.debug()) {
+				System.out.println("Java plugin:  " + JoinLeave.plugin.getServer().getBukkitVersion());
 			}
-			JoinLeave.plugin.getServer().getScheduler().runTaskLater( JoinLeave.plugin, new Runnable() {
+			JoinLeave.plugin.getServer().getScheduler().runTaskLater(JoinLeave.plugin, new Runnable() {
 				public void run() {
 
 					ChannelExec channel = null;
@@ -531,13 +531,13 @@ public class Create_Server extends JavaPlugin {
 						sessie.setPassword(password);
 						sessie.connect();
 						channel = (ChannelExec) sessie.openChannel("exec");
-						channel.setCommand("screen -dmS "+id+" "+path + id + "/start.sh");
+						channel.setCommand("screen -dmS " + id + " " + path + id + "/start.sh");
 						BufferedReader in = new BufferedReader(new InputStreamReader(channel.getInputStream()));
 						channel.connect();
 						Thread.sleep(100L);
 						if (JoinLeave.debug()) {
-							System.out.println(
-									"Command for starting server "+channel.getId()+" was executed with code: " + channel.getExitStatus());
+							System.out.println("Command for starting server " + channel.getId()
+									+ " was executed with code: " + channel.getExitStatus());
 						}
 						if (channel.getExitStatus() == 0 || channel.isClosed() || channel.isEOF()) {
 							if (JoinLeave.debug()) {
@@ -571,6 +571,6 @@ public class Create_Server extends JavaPlugin {
 			e.printStackTrace();
 		}
 
-		return false;
+		return true;
 	}
 }

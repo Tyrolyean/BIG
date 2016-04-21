@@ -19,7 +19,7 @@ public class set_inventory_server {
 	public static void main(Player player, Server server){
 		Connection conn = null;
 		Statement stmt = null;
-		final String DB_URL = "jdbc:mysql://" + JoinLeave.mysql() + "/server_parts";
+		final String DB_URL = "jdbc:mysql://" + JoinLeave.mysql + "/server_parts";
 
 		// Database credentials
 		final String USER = "server_parts";

@@ -160,7 +160,7 @@ public class JoinLeave extends JavaPlugin implements Listener {
 			if (sender == this.getServer().getConsoleSender()) {
 				URL uuidresolver;
 				try {
-					uuidresolver = new URL("https://api.mojang.com/users/profiles/minecraft/" + args[2]);
+					uuidresolver = new URL("https://api.mojang.com/users/profiles/minecraft/" + args[0]);
 
 					BufferedReader input = new BufferedReader(
 							new InputStreamReader(uuidresolver.openConnection().getInputStream()));

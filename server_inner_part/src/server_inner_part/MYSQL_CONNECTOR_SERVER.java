@@ -9,9 +9,9 @@ import com.mysql.jdbc.Statement;
 
 import org.apache.commons.net.ftp.*;
 
-public class MYSQL_CONNECTOR_CREATE_SERVER {
+public class MYSQL_CONNECTOR_SERVER {
 	static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
-	static final String DB_URL = "jdbc:mysql://" + JoinLeave.mysql() + "/server_parts" + "?useSSL=true";
+	static final String DB_URL = "jdbc:mysql://" + JoinLeave.mysql + "/server_parts" + "?useSSL=true";
 
 	// Database credentials
 	static final String USER = "minecraft";
@@ -115,34 +115,50 @@ public class MYSQL_CONNECTOR_CREATE_SERVER {
 				while (rs.next()) {
 					server_id = rs.getInt(1);
 				}
-				if(JoinLeave.debug()){
-					System.out.println("Retrievet Server_id from Player with: "+server_id);
+				if (JoinLeave.debug()) {
+					System.out.println("Retrievet Server_id from Player with: " + server_id);
 				}
-				if (server_id == 0) {//If no Server of the player exists then create a new one
-					if(JoinLeave.debug()){
-						System.out.println("Creating a new Server for player with uuid "+uuid);
+				if (server_id == 0) {// If no Server of the player exists then
+										// create a new one
+					if (JoinLeave.debug()) {
+						System.out.println("Creating a new Server for player with uuid " + uuid);
 					}
 					Create_Server.main(port, sid, username, type, direction, server, username, password);
 					direction = direction + sid + "/";
-					stmt.execute("INSERT INTO server_location (port,adress,owner,location,name) VALUES ('"
-							+ port + "','" + adress + "','" + uuid + "','" + direction + "','" + name
-							+ "') ");
-					stmt.execute("INSERT INTO worlds (world_name,server_id,owner,expires,location,world_type,server_internal_number) VALUES('"+name+"',"+server_id+",'"+uuid+"',"+unixTime+",'"+direction+1+name+"','"+type+"',"+1+")");
+					stmt.execute("INSERT INTO server_location (RAM,port,adress,owner,location,name) VALUES (512,'"
+							+ port + "','" + adress + "','" + uuid + "','" + direction + "','" + name + "') ");
+					stmt.execute(
+							"INSERT INTO worlds (server_ip,world_name,server_id,owner,expires,location,world_type,server_internal_number) VALUES('"
+									+ adress + "','" + name + "'," + server_id + ",'" + uuid + "'," + unixTime + ",'"
+									+ direction + 1 + name + "','" + type + "'," + 1 + ")");
 					if (JoinLeave.debug()) {
 						System.out.println("Created the Server and the 1st spawn world in the MYSQL-Database");
 					}
-				} else {//The player has already a Server. Adding a new world to the Server
-					//GET the maximal Server internal number
+				} else {// The player has already a Server. Adding a new world
+						// to the Server
+					// GET the maximal Server internal number
 					direction = direction + sid + "/";
-					rs=null;
-					int internal_number=1;
-							rs=stmt.executeQuery("SELECT MAX(server_internal_number) FROM worlds WHERE server_id ="+server_id);
-					while(rs.next()){
-						internal_number=rs.getInt(1);
+					rs = null;
+					int internal_number = 1;
+					String ip = null;
+					stmt.execute("UPDATE server_location SET RAM=RAM+256 WHERE id=" + server_id);
+					rs = stmt.executeQuery(
+							"SELECT MAX(server_internal_number) FROM worlds WHERE server_id =" + server_id);
+					while (rs.next()) {
+						internal_number = rs.getInt(1);
 					}
-					stmt.execute("INSERT INTO worlds (world_name,server_id,owner,expires,location,world_type,server_internal_number) VALUES('"+name+"',"+server_id+",'"+uuid+"',"+unixTime+",'"+direction+internal_number+name+"','"+type+"',"+internal_number+")");
-					if(JoinLeave.debug()){
-						System.out.println("Added world to existing Server with Server_id "+server_id+" and Server internal number "+internal_number);
+					rs = null;
+					rs = stmt.executeQuery("SELECT adress FROM server_location WHERE id =" + server_id);
+					while (rs.next()) {
+						ip = rs.getString(1);
+					}
+					stmt.execute(
+							"INSERT INTO worlds (server_ip,world_name,server_id,owner,expires,location,world_type,server_internal_number) VALUES('"
+									+ ip + "','" + name + "'," + server_id + ",'" + uuid + "'," + unixTime + ",'"
+									+ direction + internal_number + name + "','" + type + "'," + internal_number + ")");
+					if (JoinLeave.debug()) {
+						System.out.println("Added world to existing Server with Server_id " + server_id
+								+ " and Server internal number " + internal_number);
 					}
 				}
 			} catch (Exception e) {
@@ -177,5 +193,45 @@ public class MYSQL_CONNECTOR_CREATE_SERVER {
 
 		return 0;
 
+	}
+
+	public static void upgrade_RAM(int RAM,String uuid) {
+		Connection conn = null;
+		java.sql.Statement stmt = null;
+		try {
+
+			// JDBC driver
+			Class.forName("com.mysql.jdbc.Driver");
+
+			// Open connection
+			conn = DriverManager.getConnection(DB_URL, USER, PASS);
+
+			// Executing query
+			stmt = conn.createStatement();
+			stmt.execute("UPDATE server_location SET RAM=RAM+"+RAM+" WHERE owner ='"+uuid+"'");
+
+			// Close Connection
+			stmt.close();
+			conn.close();
+		} catch (SQLException se) {
+			// Handle errors for JDBC
+			se.printStackTrace();
+		} catch (Exception e) {
+			// Handle errors for Class.forName
+			e.printStackTrace();
+		} finally {
+			// finally block used to close resources
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException se2) {
+			} // fatal...
+			try {
+				if (conn != null)
+					conn.close();
+			} catch (SQLException se) {
+				se.printStackTrace();
+			} // end finally try
+		} // end try
 	}
 }
