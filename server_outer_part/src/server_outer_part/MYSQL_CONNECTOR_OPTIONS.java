@@ -48,6 +48,9 @@ public class MYSQL_CONNECTOR_OPTIONS {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+			if(Person_splitter.debug){
+				Person_splitter.logger.info("Got host adress: "+i);
+			}
 			String sql;
 			ResultSet ider = stmt.executeQuery("SELECT default_world,id FROM server_location WHERE adress ='" + i
 					+ "' AND port =" + Person_splitter.server.getPort());
@@ -55,7 +58,7 @@ public class MYSQL_CONNECTOR_OPTIONS {
 				internal = ider.getInt("default_world");
 				id = ider.getInt("id");
 			}
-			sql = "SELECT * FROM worlds WHERE id=" + id + " AND server_internal_number =" + internal;
+			sql = "SELECT * FROM worlds WHERE server_id=" + id + " AND server_internal_number =" + internal;
 			System.out.print(sql);
 			ResultSet rs = stmt.executeQuery(sql);
 			sql = null;
@@ -300,7 +303,7 @@ public class MYSQL_CONNECTOR_OPTIONS {
 			} // Got the returner
 			try {// For debug print the list
 				if (Person_splitter.debug) {
-					for (int i = 0; i < returner.size(); i++) {
+					for(int i = 0; i < returner.size(); i++) {
 						Person_splitter.logger.info(returner.get(i));
 					}
 				}
@@ -337,40 +340,104 @@ public class MYSQL_CONNECTOR_OPTIONS {
 	public static String get_spawn_world(Player joiner) {
 		Connection conn = null;
 		java.sql.Statement stmt = null;
-		String returner=null;
+		String returner = null;
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
 			// Open connection
 			conn = DriverManager.getConnection(DB_URL, USER, PASS);
-			stmt=conn.createStatement();
-			ResultSet rs=stmt.executeQuery("SELECT default_world FROM server_location WHERE id ="+Person_splitter.server_id);
-			int default_world=0;
-			while(rs.next()){
-				default_world=rs.getInt(1);
+			stmt = conn.createStatement();
+			ResultSet rs = stmt
+					.executeQuery("SELECT default_world FROM server_location WHERE id =" + Person_splitter.server_id);
+			int default_world = 0;
+			while (rs.next()) {
+				default_world = rs.getInt(1);
 			}
-			if(default_world==0){
-				rs=null;
-				rs=stmt.executeQuery("SELECT * FROM player_transmission WHERE username='"+joiner.getDisplayName()+"'");
-				int internal=0;
-				while(rs.next()){
-					internal=rs.getInt("target_world");
+			if (default_world == 0) {
+				rs = null;
+				if(Person_splitter.debug){
+					Person_splitter.logger.info("No default world was set. Connection has had to be created!");
 				}
-				String name=null;
-				rs=null;
-				rs=stmt.executeQuery("SELECT world_name FROM worlds WHERE server_internal_number ="+internal+" AND server_id ="+Person_splitter.server_id);
-				while(rs.next()){
-					name=rs.getString(1);
+				rs = stmt.executeQuery(
+						"SELECT * FROM player_transmission WHERE username='" + joiner.getDisplayName() + "'");
+				int internal = 0;
+				while (rs.next()) {
+					internal = rs.getInt("target_world");
 				}
-				returner=internal+name;
-			}else{
-				returner=get_default_world();
+				String name = null;
+				rs = null;
+				rs = stmt.executeQuery("SELECT world_name FROM worlds WHERE server_internal_number =" + internal
+						+ " AND server_id =" + Person_splitter.server_id);
+				while (rs.next()) {
+					name = rs.getString(1);
+				}
+				if(Person_splitter.debug){
+					Person_splitter.logger.info("Player joined internal "+internal+" with name "+name);
+				}
+				returner = internal + name;
+				
+				stmt.execute("DELETE FROM player_transmission WHERE username='"+joiner.getDisplayName()+"'");
+			} else {
+				if(Person_splitter.debug){
+					Person_splitter.logger.info("Get default world which was set by owner!");
+				}
+				returner = get_default_world();
 			}
 			conn.close();
 			stmt.close();
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		if(Person_splitter.debug){
+			Person_splitter.logger.info("Got world for player: "+returner);
+		}
 		return returner;
+	}
+	
+	public static long getRAM(){
+		
+		Connection conn = null;
+		Statement stmt = null;
+		long RAM =0;
+		try {
+
+			// JDBC driver
+			Class.forName("com.mysql.jdbc.Driver");
+
+			// Open connection
+			conn = DriverManager.getConnection(DB_URL, USER, PASS);
+
+			// Executing query
+			stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery("SELECT RAM FROM server_location WHERE id="+Person_splitter.server_id);
+			while (rs.next()) {
+				RAM=rs.getLong(1);
+			}
+			// Close Connection
+			rs.close();
+			stmt.close();
+			conn.close();
+		} catch (SQLException se) {
+			// Handle errors for JDBC
+			se.printStackTrace();
+		} catch (Exception e) {
+			// Handle errors for Class.forName
+			e.printStackTrace();
+		} finally {
+			// finally block used to close resources
+			try {
+				if (stmt != null)
+					stmt.close();
+			} catch (SQLException se2) {
+			} // fatal...
+			try {
+				if (conn != null)
+					conn.close();
+			} catch (SQLException se) {
+				se.printStackTrace();
+			} // end finally try
+		} // end try
+		return RAM;
+		
 	}
 }

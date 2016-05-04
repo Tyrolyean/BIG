@@ -6,18 +6,6 @@ author: Tyrolyean
 prefix: HAL 1
 website: www.Tyrolyean.tk
 commands:
-   ping:
-      description: The ping of the player.
-      usage: /<command>
-      permission: big.ping
-      permission-message: You don't have <permission>
-   lobby:
-      description: Sets the Lobby.
-      usage: /<command>
-      permission: big.lobby
-      permission-message: You don't have <permission>
-   time:
-      description: Gives the actual server-time.
-      usage: /<command>
-      permission: big.time
-      permission-message: You don't have <permission>
+   world:
+      description: Go to another world.
+      usage: /<command> <world_id>

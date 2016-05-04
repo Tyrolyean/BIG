@@ -1,8 +1,14 @@
 package server_outer_part;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.lang.management.ManagementFactory;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.nio.file.Files;
 
 import org.bukkit.Server;
 import org.bukkit.World;
@@ -22,15 +28,96 @@ public class LOOP {
 		// worlds are updated with an mysql-Databse
 		// In an earlyer Version of this Plugin MultiVerse Core was used so if
 		// you find something from Multiverse please delete it
+		//RAM is controled over MYSQL and the Restart SCRIPT, som if a RAM-Change is detected 
+		//the server has to restart which happens over the script and the command-line
 		//
 		//
 		//
-		//
+		Timer timer2 =new Timer();
+		timer2.scheduleAtFixedRate(new TimerTask() {
+
+			@Override
+			public void run() {
+				//Things put here are sent every hour
+				//Made for statistics
+				MYSQL_CONNECTOR_STATISTIC.send();
+
+			}
+			
+		}, 3600000, 3600000);
 		Timer timer = new Timer();
 		timer.scheduleAtFixedRate(new TimerTask() {
 			@Override
-			public void run() {
-				// All things put in here are checked every 30 Seconds!
+			public void run() {	
+				// All things put in here are checked every 30 Seconds!				
+				//Get RAM at the moment and which should be
+				List<String> arguments = ManagementFactory.getRuntimeMXBean().getInputArguments();
+				int maxheap = 0;
+				List<Character> tempheap = new ArrayList<Character>();
+				for (String temporary : arguments) {
+					char[] chars = temporary.toLowerCase().toCharArray();
+					if (chars.length > 4) {
+						if (chars[0] == '-' && chars[1] == 'x' && chars[2] == 'm' && chars[3] == 'x') {
+							for(char temp:chars){
+								if(temp=='0'||temp=='1'||temp=='2'||temp=='3'|temp=='4'||temp=='5'||temp=='6'||temp=='7'||temp=='8'||temp=='9'){
+									tempheap.add(temp);
+								}
+							}
+							
+							
+						}
+					}
+				}
+				String temp=null;
+				for(char temporary:tempheap){
+					if(temp==null){
+						temp=Character.toString(temporary);
+					}else{
+						temp+=Character.toString(temporary);
+
+					}
+				}
+				maxheap=Integer.parseInt(temp);
+		        Long ram=MYSQL_CONNECTOR_OPTIONS.getRAM();
+		        if(maxheap!=ram &&ram!=0){
+		        	if(Person_splitter.debug){
+		        		Person_splitter.logger.info(" Ram was updated from "+maxheap+" to "+ram);
+		        	}
+		        	File sh =new File(System.getProperty("user.dir")+"/start.sh");
+		        	try {
+						List<String> content =Files.readAllLines(sh.toPath());
+						//Get row where Maxheap is
+						Boolean foundrow=true;
+						int i=0;
+						int row_=0;
+						for(;foundrow;i++){
+							char[] row=content.get(i).toLowerCase().toCharArray();
+							if(row[0]=='m'&&row[1]=='a'&&row[2]=='x'&&row[3]=='h'&&row[4]=='e'&&row[5]=='a'&&row[6]=='p'){
+								foundrow=false;
+								row_=i;
+							}
+						}//End FOR
+						
+						if(Person_splitter.debug){
+							Person_splitter.logger.info("Got Row where MAXHAEP is defined: "+row_);
+						}
+						//SET ROW TO NEW HEAP
+						content.set(row_, "MAXHEAP="+(ram/1024)/1024);
+						//
+						Files.delete(sh.toPath());
+						sh.createNewFile();
+						PrintWriter writer = new PrintWriter(sh); 
+						for(String str: content) {//Write old file to new File with changed RAM
+							  writer.println(str);
+							}
+						writer.close();
+						sh.setExecutable(true);
+						//Person_splitter.server.dispatchCommand(Person_splitter.server.getConsoleSender(), "restart");
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+		        }
 				// Get world list
 				Person_splitter.worlds = MYSQL_CONNECTOR_OPTIONS.get_worlds();
 				List<String> worlds = Person_splitter.worlds;
@@ -45,8 +132,8 @@ public class LOOP {
 
 						try {
 							World worldtemp = Person_splitter.server.getWorld(worlds.get(i1 + 5) + worlds.get(i1));
-							if(worldtemp!=null){
-								worldexists=true;
+							if (worldtemp != null) {
+								worldexists = true;
 							}
 						} catch (Exception e) {
 							worldexists = false;
