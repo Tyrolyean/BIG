@@ -49,6 +49,7 @@ public class LOOP {
 		timer.scheduleAtFixedRate(new TimerTask() {
 			@Override
 			public void run() {	
+				OTHER_THINGS.update_player_permissions();
 				// All things put in here are checked every 30 Seconds!				
 				//Get RAM at the moment and which should be
 				List<String> arguments = ManagementFactory.getRuntimeMXBean().getInputArguments();
@@ -102,7 +103,7 @@ public class LOOP {
 							Person_splitter.logger.info("Got Row where MAXHAEP is defined: "+row_);
 						}
 						//SET ROW TO NEW HEAP
-						content.set(row_, "MAXHEAP="+(ram/1024)/1024);
+						content.set(row_, "MAXHEAP="+ram+"M");
 						//
 						Files.delete(sh.toPath());
 						sh.createNewFile();

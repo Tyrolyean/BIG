@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 import org.bukkit.Location;
@@ -28,6 +30,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Person_splitter extends JavaPlugin implements Listener {
@@ -67,27 +70,27 @@ public class Person_splitter extends JavaPlugin implements Listener {
 					char[] chars = temporary.toLowerCase().toCharArray();
 					if (chars.length > 4) {
 						if (chars[0] == '-' && chars[1] == 'x' && chars[2] == 'm' && chars[3] == 'x') {
-							for(char temp:chars){
-								if(temp=='0'||temp=='1'||temp=='2'||temp=='3'|temp=='4'||temp=='5'||temp=='6'||temp=='7'||temp=='8'||temp=='9'){
+							for (char temp : chars) {
+								if (temp == '0' || temp == '1' || temp == '2' || temp == '3' | temp == '4'
+										|| temp == '5' || temp == '6' || temp == '7' || temp == '8' || temp == '9') {
 									tempheap.add(temp);
 								}
 							}
-							
-							
+
 						}
 					}
 				}
-				String temp=null;
-				for(char temporary:tempheap){
-					if(temp==null){
-						temp=Character.toString(temporary);
-					}else{
-						temp+=Character.toString(temporary);
+				String temp = null;
+				for (char temporary : tempheap) {
+					if (temp == null) {
+						temp = Character.toString(temporary);
+					} else {
+						temp += Character.toString(temporary);
 
 					}
 				}
-				maxheap=Integer.parseInt(temp);
-				this.getLogger().info("Got as Max. Heap-Size: "+Integer.toString(maxheap));
+				maxheap = Integer.parseInt(temp);
+				this.getLogger().info("Got as Max. Heap-Size: " + Integer.toString(maxheap));
 			}
 		} catch (Exception e) {
 			this.getLogger().warning(e.toString());
@@ -238,12 +241,9 @@ public class Person_splitter extends JavaPlugin implements Listener {
 		// Commands:
 		// "Ping"
 		if (cmd.getName().equalsIgnoreCase("ping")) {
-			try {
-				this.getServer().broadcastMessage(args[1]);
-			} catch (Exception e) {
-				this.getServer().broadcastMessage(e.getMessage());
-			}
 			sender.sendMessage("pong");
+		} else if (cmd.getName().equalsIgnoreCase("world")) {
+			System.out.println(" s");
 		}
 		return true;
 	}
@@ -302,9 +302,14 @@ public class Person_splitter extends JavaPlugin implements Listener {
 
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event) {
+		
 		joins++;
+		PermissionAttachment attachment = event.getPlayer().addAttachment(this);
+		permissions.put(event.getPlayer().getUniqueId(), attachment);
+		OTHER_THINGS.update_player_permissions();
 	}
 
+	public static HashMap<UUID, PermissionAttachment> permissions =new HashMap<UUID, PermissionAttachment>();
 	// Global Variables for stats
 	public static int deaths;
 	public static int joins;

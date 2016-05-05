@@ -48,8 +48,8 @@ public class MYSQL_CONNECTOR_OPTIONS {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			if(Person_splitter.debug){
-				Person_splitter.logger.info("Got host adress: "+i);
+			if (Person_splitter.debug) {
+				Person_splitter.logger.info("Got host adress: " + i);
 			}
 			String sql;
 			ResultSet ider = stmt.executeQuery("SELECT default_world,id FROM server_location WHERE adress ='" + i
@@ -303,7 +303,7 @@ public class MYSQL_CONNECTOR_OPTIONS {
 			} // Got the returner
 			try {// For debug print the list
 				if (Person_splitter.debug) {
-					for(int i = 0; i < returner.size(); i++) {
+					for (int i = 0; i < returner.size(); i++) {
 						Person_splitter.logger.info(returner.get(i));
 					}
 				}
@@ -354,7 +354,7 @@ public class MYSQL_CONNECTOR_OPTIONS {
 			}
 			if (default_world == 0) {
 				rs = null;
-				if(Person_splitter.debug){
+				if (Person_splitter.debug) {
 					Person_splitter.logger.info("No default world was set. Connection has had to be created!");
 				}
 				rs = stmt.executeQuery(
@@ -370,14 +370,14 @@ public class MYSQL_CONNECTOR_OPTIONS {
 				while (rs.next()) {
 					name = rs.getString(1);
 				}
-				if(Person_splitter.debug){
-					Person_splitter.logger.info("Player joined internal "+internal+" with name "+name);
+				if (Person_splitter.debug) {
+					Person_splitter.logger.info("Player joined internal " + internal + " with name " + name);
 				}
 				returner = internal + name;
-				
-				stmt.execute("DELETE FROM player_transmission WHERE username='"+joiner.getDisplayName()+"'");
+
+				stmt.execute("DELETE FROM player_transmission WHERE username='" + joiner.getDisplayName() + "'");
 			} else {
-				if(Person_splitter.debug){
+				if (Person_splitter.debug) {
 					Person_splitter.logger.info("Get default world which was set by owner!");
 				}
 				returner = get_default_world();
@@ -388,17 +388,17 @@ public class MYSQL_CONNECTOR_OPTIONS {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		if(Person_splitter.debug){
-			Person_splitter.logger.info("Got world for player: "+returner);
+		if (Person_splitter.debug) {
+			Person_splitter.logger.info("Got world for player: " + returner);
 		}
 		return returner;
 	}
-	
-	public static long getRAM(){
-		
+
+	public static long getRAM() {
+
 		Connection conn = null;
 		Statement stmt = null;
-		long RAM =0;
+		long RAM = 0;
 		try {
 
 			// JDBC driver
@@ -409,9 +409,10 @@ public class MYSQL_CONNECTOR_OPTIONS {
 
 			// Executing query
 			stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery("SELECT RAM FROM server_location WHERE id="+Person_splitter.server_id);
+			ResultSet rs = stmt.executeQuery("SELECT RAM FROM server_location WHERE id="
+					  +Person_splitter.server_id);
 			while (rs.next()) {
-				RAM=rs.getLong(1);
+				RAM = rs.getLong(1);
 			}
 			// Close Connection
 			rs.close();
@@ -431,13 +432,40 @@ public class MYSQL_CONNECTOR_OPTIONS {
 			} catch (SQLException se2) {
 			} // fatal...
 			try {
-				if (conn != null)
+				if (conn != null) {
 					conn.close();
+				}
 			} catch (SQLException se) {
 				se.printStackTrace();
 			} // end finally try
+
 		} // end try
 		return RAM;
-		
 	}
+
+	/*
+	 * public static void if_allowed(){
+	 * 
+	 * Connection conn = null; Statement stmt = null; try {
+	 * 
+	 * // JDBC driver Class.forName("com.mysql.jdbc.Driver");
+	 * 
+	 * // Open connection conn = DriverManager.getConnection(DB_URL, USER,
+	 * PASS);
+	 * 
+	 * // Executing query stmt = conn.createStatement(); ResultSet rs =
+	 * stmt.executeQuery("SELECT RAM FROM server_location WHERE id="
+	 * +Person_splitter.server_id); while (rs.next()) { RAM=rs.getLong(1); } //
+	 * Close Connection rs.close(); stmt.close(); conn.close(); } catch
+	 * (SQLException se) { // Handle errors for JDBC se.printStackTrace(); }
+	 * catch (Exception e) { // Handle errors for Class.forName
+	 * e.printStackTrace(); } finally { // finally block used to close resources
+	 * try { if (stmt != null) stmt.close(); } catch (SQLException se2) { } //
+	 * fatal... try { if (conn != null) conn.close(); } catch (SQLException se)
+	 * { se.printStackTrace(); } // end finally try } // end try
+	 * 
+	 * 
+	 * 
+	 * } }
+	 */
 }
