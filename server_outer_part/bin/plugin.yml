@@ -1,0 +1,11 @@
+load: STARTUP 
+name: Big_Plugin_outer_part
+main: server_outer_part.Person_splitter
+version: _ALPHA.2.5
+author: Tyrolyean
+prefix: HAL 1
+website: www.Tyrolyean.tk
+commands:
+   world:
+      description: Go to another world.
+      usage: /<command> <world_id>
