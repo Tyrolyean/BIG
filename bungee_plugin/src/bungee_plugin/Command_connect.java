@@ -49,7 +49,7 @@ public class Command_connect extends Command {
 			if (hub_exists) {
 				// Go on with cODE
 				try {
-					target = ProxyServer.getInstance().getServerInfo("s" + args[0]);
+					target = ProxyServer.getInstance().getServerInfo("s" + MYSQL_CONNECTOR_PLAYER_TRANSMISSION.get_server(Integer.parseInt( args[0])));
 				} catch (Exception e) {
 					target = null;
 				}

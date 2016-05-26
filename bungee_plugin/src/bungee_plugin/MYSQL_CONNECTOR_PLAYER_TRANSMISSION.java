@@ -7,6 +7,30 @@ import java.sql.ResultSet;
 import com.mysql.jdbc.Statement;
 
 public class MYSQL_CONNECTOR_PLAYER_TRANSMISSION {
+
+	public static int get_server(int world_id) {
+		Connection conn = null;
+		java.sql.Statement stmt = null;
+		// Open connection
+		int server_id = 0;
+		try {
+			Class.forName("com.mysql.jdbc.Driver");
+
+			conn = DriverManager.getConnection("jdbc:mysql://" + big.mysql + "/server_parts", "minecraft", "minecraft");
+			stmt = conn.createStatement();
+			ResultSet rs=stmt.executeQuery("SELECT server_id FROM worlds WHERE world_id="+world_id);
+			while(rs.next()){
+				server_id=rs.getInt(1);
+			}
+			stmt.close();
+			conn.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return server_id;
+	}
+
 	public static boolean main(String playername, String world_id) {
 		try {
 			// create the mysql database connection
@@ -29,11 +53,12 @@ public class MYSQL_CONNECTOR_PLAYER_TRANSMISSION {
 			while (rs.next()) {
 				default_world = rs.getInt(1);
 			}
-			if(big.debug){
-			System.out.println("Player "+playername+" got internal number "+default_world+" from world_id "+world_id);
+			if (big.debug) {
+				System.out.println("Player " + playername + " got internal number " + default_world + " from world_id "
+						+ world_id);
 			}
 			if (default_world == 0) {
-				stmt.execute("DELETE FROM player_transmission WHERE username ='"+playername+"'");
+				stmt.execute("DELETE FROM player_transmission WHERE username ='" + playername + "'");
 				String query = "INSERT INTO player_transmission (username,target_world) VALUES ('" + playername + "','"
 						+ internal + "')";
 				System.out.println(stmt.execute(query));

@@ -339,7 +339,7 @@ public class MYSQL_CONNECTOR_CHECK_WORLDS {
 					worlds[8] = rs3.getString("world_type");
 					worlds[12] = rs3.getString("world_name");
 					if (Person_splitter.debug) {
-						System.out.println("Got info abouth  World 4: ");
+						System.out.println("Got info about World 4: ");
 						System.out.println(worlds[4]);
 						System.out.println(worlds[8]);
 						System.out.println(worlds[12]);

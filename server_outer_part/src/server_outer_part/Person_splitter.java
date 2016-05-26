@@ -11,8 +11,10 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
 
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Server;
+import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -308,7 +310,8 @@ public class Person_splitter extends JavaPlugin implements Listener {
 		permissions.put(event.getPlayer().getUniqueId(), attachment);
 		OTHER_THINGS.update_player_permissions();
 	}
-
+	public static HashMap<World,Location> spawns;
+	public static HashMap<World,GameMode> gamemodes;
 	public static HashMap<UUID, PermissionAttachment> permissions =new HashMap<UUID, PermissionAttachment>();
 	// Global Variables for stats
 	public static int deaths;

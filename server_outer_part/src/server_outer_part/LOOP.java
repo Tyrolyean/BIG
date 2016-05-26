@@ -5,11 +5,15 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.nio.file.Files;
 
+import org.bukkit.Difficulty;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
@@ -28,30 +32,32 @@ public class LOOP {
 		// worlds are updated with an mysql-Databse
 		// In an earlyer Version of this Plugin MultiVerse Core was used so if
 		// you find something from Multiverse please delete it
-		//RAM is controled over MYSQL and the Restart SCRIPT, som if a RAM-Change is detected 
-		//the server has to restart which happens over the script and the command-line
+		// RAM is controled over MYSQL and the Restart SCRIPT, som if a
+		// RAM-Change is detected
+		// the server has to restart which happens over the script and the
+		// command-line
 		//
 		//
 		//
-		Timer timer2 =new Timer();
+		Timer timer2 = new Timer();
 		timer2.scheduleAtFixedRate(new TimerTask() {
 
 			@Override
 			public void run() {
-				//Things put here are sent every hour
-				//Made for statistics
+				// Things put here are sent every hour
+				// Made for statistics
 				MYSQL_CONNECTOR_STATISTIC.send();
 
 			}
-			
+
 		}, 3600000, 3600000);
 		Timer timer = new Timer();
 		timer.scheduleAtFixedRate(new TimerTask() {
 			@Override
-			public void run() {	
+			public void run() {
 				OTHER_THINGS.update_player_permissions();
-				// All things put in here are checked every 30 Seconds!				
-				//Get RAM at the moment and which should be
+				// All things put in here are checked every 30 Seconds!
+				// Get RAM at the moment and which should be
 				List<String> arguments = ManagementFactory.getRuntimeMXBean().getInputArguments();
 				int maxheap = 0;
 				List<Character> tempheap = new ArrayList<Character>();
@@ -59,66 +65,69 @@ public class LOOP {
 					char[] chars = temporary.toLowerCase().toCharArray();
 					if (chars.length > 4) {
 						if (chars[0] == '-' && chars[1] == 'x' && chars[2] == 'm' && chars[3] == 'x') {
-							for(char temp:chars){
-								if(temp=='0'||temp=='1'||temp=='2'||temp=='3'|temp=='4'||temp=='5'||temp=='6'||temp=='7'||temp=='8'||temp=='9'){
+							for (char temp : chars) {
+								if (temp == '0' || temp == '1' || temp == '2' || temp == '3' | temp == '4'
+										|| temp == '5' || temp == '6' || temp == '7' || temp == '8' || temp == '9') {
 									tempheap.add(temp);
 								}
 							}
-							
-							
+
 						}
 					}
 				}
-				String temp=null;
-				for(char temporary:tempheap){
-					if(temp==null){
-						temp=Character.toString(temporary);
-					}else{
-						temp+=Character.toString(temporary);
+				String temp = null;
+				for (char temporary : tempheap) {
+					if (temp == null) {
+						temp = Character.toString(temporary);
+					} else {
+						temp += Character.toString(temporary);
 
 					}
 				}
-				maxheap=Integer.parseInt(temp);
-		        Long ram=MYSQL_CONNECTOR_OPTIONS.getRAM();
-		        if(maxheap!=ram &&ram!=0){
-		        	if(Person_splitter.debug){
-		        		Person_splitter.logger.info(" Ram was updated from "+maxheap+" to "+ram);
-		        	}
-		        	File sh =new File(System.getProperty("user.dir")+"/start.sh");
-		        	try {
-						List<String> content =Files.readAllLines(sh.toPath());
-						//Get row where Maxheap is
-						Boolean foundrow=true;
-						int i=0;
-						int row_=0;
-						for(;foundrow;i++){
-							char[] row=content.get(i).toLowerCase().toCharArray();
-							if(row[0]=='m'&&row[1]=='a'&&row[2]=='x'&&row[3]=='h'&&row[4]=='e'&&row[5]=='a'&&row[6]=='p'){
-								foundrow=false;
-								row_=i;
+				maxheap = Integer.parseInt(temp);
+				Long ram = MYSQL_CONNECTOR_OPTIONS.getRAM();
+				if (maxheap != ram && ram != 0) {
+					if (Person_splitter.debug) {
+						Person_splitter.logger.info(" Ram was updated from " + maxheap + " to " + ram);
+					}
+					File sh = new File(System.getProperty("user.dir") + "/start.sh");
+					try {
+						List<String> content = Files.readAllLines(sh.toPath());
+						// Get row where Maxheap is
+						Boolean foundrow = true;
+						int i = 0;
+						int row_ = 0;
+						for (; foundrow; i++) {
+							char[] row = content.get(i).toLowerCase().toCharArray();
+							if (row[0] == 'm' && row[1] == 'a' && row[2] == 'x' && row[3] == 'h' && row[4] == 'e'
+									&& row[5] == 'a' && row[6] == 'p') {
+								foundrow = false;
+								row_ = i;
 							}
-						}//End FOR
-						
-						if(Person_splitter.debug){
-							Person_splitter.logger.info("Got Row where MAXHAEP is defined: "+row_);
+						} // End FOR
+
+						if (Person_splitter.debug) {
+							Person_splitter.logger.info("Got Row where MAXHAEP is defined: " + row_);
 						}
-						//SET ROW TO NEW HEAP
-						content.set(row_, "MAXHEAP="+ram+"M");
+						// SET ROW TO NEW HEAP
+						content.set(row_, "MAXHEAP=" + ram + "M");
 						//
 						Files.delete(sh.toPath());
 						sh.createNewFile();
-						PrintWriter writer = new PrintWriter(sh); 
-						for(String str: content) {//Write old file to new File with changed RAM
-							  writer.println(str);
-							}
+						PrintWriter writer = new PrintWriter(sh);
+						for (String str : content) {// Write old file to new
+													// File with changed RAM
+							writer.println(str);
+						}
 						writer.close();
 						sh.setExecutable(true);
-						//Person_splitter.server.dispatchCommand(Person_splitter.server.getConsoleSender(), "restart");
+						// Person_splitter.server.dispatchCommand(Person_splitter.server.getConsoleSender(),
+						// "restart");
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-		        }
+				}
 				// Get world list
 				Person_splitter.worlds = MYSQL_CONNECTOR_OPTIONS.get_worlds();
 				List<String> worlds = Person_splitter.worlds;
@@ -179,8 +188,101 @@ public class LOOP {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
+				// Update the per-world options
+				// This can only be set by the server-Administrator
+				// Aaaand here comes the Hashmap!!!!!
+				HashMap<String, ArrayList<Object>> options = MYSQL_CONNECTOR_OPTIONS.getAllOptions();
+
+				// Update world_settings for every world.
+
+				for (World world : Person_splitter.server.getWorlds()) {
+
+					ArrayList<Object> world_options = options.get(world.getName());
+					// Set Difficulty
+					if (world_options.get(0).equals(0)) {
+						world.setDifficulty(Difficulty.PEACEFUL);
+					} else if (world_options.get(0).equals(1)) {
+						world.setDifficulty(Difficulty.EASY);
+					} else if (world_options.get(0).equals(2)) {
+						world.setDifficulty(Difficulty.NORMAL);
+					} else if (world_options.get(0).equals(3)) {
+						world.setDifficulty(Difficulty.HARD);
+					} else {
+						world.setDifficulty(Difficulty.NORMAL);
+					}
+					// Set default Gamemode
+					if (world_options.get(1).equals(0)) {
+						if (Person_splitter.gamemodes.get(world) != null) {
+							Person_splitter.gamemodes.replace(world, GameMode.SURVIVAL);
+						} else {
+							Person_splitter.gamemodes.put(world, GameMode.SURVIVAL);
+						}
+
+					} else if (world_options.get(1).equals(1)) {
+						if (Person_splitter.gamemodes.get(world) != null) {
+							Person_splitter.gamemodes.replace(world, GameMode.CREATIVE);
+						} else {
+							Person_splitter.gamemodes.put(world, GameMode.CREATIVE);
+						}
+
+					} else if (world_options.get(1).equals(2)) {
+						if (Person_splitter.gamemodes.get(world) != null) {
+							Person_splitter.gamemodes.replace(world, GameMode.ADVENTURE);
+						} else {
+							Person_splitter.gamemodes.put(world, GameMode.ADVENTURE);
+						}
+
+					} else if (world_options.get(1).equals(3)) {
+						if (Person_splitter.gamemodes.get(world) != null) {
+							Person_splitter.gamemodes.replace(world, GameMode.SPECTATOR);
+						} else {
+							Person_splitter.gamemodes.put(world, GameMode.SPECTATOR);
+						}
+
+					} else {
+						if (Person_splitter.gamemodes.get(world) != null) {
+							Person_splitter.gamemodes.replace(world, GameMode.SURVIVAL);
+						} else {
+							Person_splitter.gamemodes.put(world, GameMode.SURVIVAL);
+						}
+
+					}
+					// animal and Monster-Spawnrate
+					world.setTicksPerAnimalSpawns((int) world_options.get(2));
+					world.setTicksPerMonsterSpawns((int) world_options.get(3));
+					if (!(boolean) world_options.get(4)) {
+						world.setThundering(false);
+						world.setStorm(false);
+						world.setWeatherDuration(6000);
+					}
+					// set if the players can hurt eachother
+					world.setPVP((boolean) world_options.get(5));
+
+					if ((int) world_options.get(6) == 0 && (int) world_options.get(7) == 0
+							&& (int) world_options.get(7) == 0) {
+						// Here if the Admin says that the persons should spawn,
+						// where they left the last time.
+						// Putting into Hashmap
+						if (Person_splitter.spawns.get(world) != null) {
+							Person_splitter.spawns.replace(world, new Location(world, 0, 0, 0));
+						} else {
+							Person_splitter.spawns.put(world, new Location(world, 0, 0, 0));
+						}
+					} else {
+						if (Person_splitter.spawns.get(world) != null) {
+							Person_splitter.spawns.replace(world, new Location(world, (int) world_options.get(6),
+									(int) world_options.get(7), (int) world_options.get(8)));
+						} else {
+							Person_splitter.spawns.put(world, new Location(world, (int) world_options.get(6),
+									(int) world_options.get(7), (int) world_options.get(8)));
+						}
+
+					}
+
+				}
 
 			}
+
 		}, 30000, 30000);
 
 	}

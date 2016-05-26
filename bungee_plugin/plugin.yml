@@ -2,7 +2,7 @@ name: big
 main: bungee_plugin.big
 version: _ALPHA.0.1
 author: Tyrolyean
-prefix: HAL 1
+prefix: HAL 0
 commands:
     hub:
       description: Connects you to the hub.

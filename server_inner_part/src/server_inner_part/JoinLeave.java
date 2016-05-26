@@ -35,7 +35,7 @@ public class JoinLeave extends JavaPlugin implements Listener {
 	public Location Lobby = new Location(this.getServer().getWorld("world"), 0, 0, 0);
 
 	// Global used Mysql-Database
-	public static String mysql = "192.168.0.2";
+	public static String mysql = "192.168.0.102";
 	public static Server server;
 
 	// Global Debug mode

@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
@@ -468,4 +469,84 @@ public class MYSQL_CONNECTOR_OPTIONS {
 	 * 
 	 * } }
 	 */
+	
+	//Structure of the Hashmap:
+	//1.String: the worldname
+	//2.ArrayList<Object>: All Options.
+	
+	//ArrayList which will be returned by the Hashmap:
+	//0.int: difficulty. Can be 0,1,2,3
+	//1.int: gamemode. Can be 0,1,2,3
+	//2.int: animal-spawnrate. Can only be an Integer. If <0 default.
+	//3.int: monster-spawnrate. Can only be an Integer. If <0 default.
+	//4.Boolean: weather. If true there is weather.
+	//5.Boolean: pvp. If true players can hurt each other.
+	//6.int: spawn_x. If 0 then auto.
+	//007.int: spawn_y. If 0 then auto.
+	//8.int: spawn_z. If 0 then auto.
+	public static HashMap<String,ArrayList<Object>> getAllOptions(){
+		Connection conn = null;
+		Statement stmt = null;
+		HashMap<String,ArrayList<Object>> options=new HashMap<String,ArrayList<Object>>();
+		ArrayList<Integer> world_ids=new ArrayList<Integer>();
+		
+		try{
+			Class.forName("com.mysql.jdbc.Driver");
+
+			// Open connection
+			conn = DriverManager.getConnection(DB_URL, USER, PASS);
+			stmt=conn.createStatement();
+			//Get List of world ids from this server
+			ResultSet rs=stmt.executeQuery("SELECT * FROM worlds WHERE server_id="+Person_splitter.server_id);
+			while(rs.next()){
+				world_ids.add(rs.getInt("world_id"));
+			}
+			//Get options from the Database
+			rs=null;
+			for(int i:world_ids){
+				//Get Name of the world.
+				rs=stmt.executeQuery("SELECT * FROM worlds WHERE world_id="+i);
+				String world_as_saved=null;
+				while(rs.next()){
+					world_as_saved=rs.getInt("server_internal_number")+rs.getString("world_name");
+				}
+				rs=null;
+				ArrayList<Object> tmp =new ArrayList<Object>();
+				//Get options
+				rs=stmt.executeQuery("SELECT * FROM options WHERE world_id="+i);
+				
+				while(rs.next()){
+					//Put thing into the ArrayList
+					tmp.add(rs.getShort("difficulty"));
+					tmp.add(rs.getShort("gamemode"));
+					tmp.add(rs.getInt("animal_spawnrate"));
+					tmp.add(rs.getInt("monster_spawnrate"));
+					tmp.add(rs.getBoolean("weather"));
+					tmp.add(rs.getBoolean("pvp"));
+					tmp.add(rs.getInt("spawn_x"));
+					tmp.add(rs.getInt("spawn_y"));
+					tmp.add(rs.getInt("spawn_z"));
+				}
+				//Put this options into the Hashmap that will be returned
+				options.put(world_as_saved, tmp);
+				tmp=null;
+				world_as_saved=null;
+				rs=null;
+			}
+			
+			
+			
+			stmt.close();
+			conn.close();
+			
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return options;
+	}
+	
+	
+	
+	
+	
 }
