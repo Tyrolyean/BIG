@@ -11,7 +11,7 @@ import net.md_5.bungee.event.EventHandler;
 
 public class big extends Plugin implements Listener{
 	//Mysql-Database Location
-	public static String mysql="192.168.0.2";
+	public static String mysql="192.168.0.102";
 	//Global DEBUG
 	public static boolean debug=true;
     @Override
@@ -35,4 +35,11 @@ public class big extends Plugin implements Listener{
     	player.sendMessage(new ComponentBuilder(message)
 					.color(ChatColor.RED).create());
     }
+    
+    
+    
+    
+    
+    
+    
 }

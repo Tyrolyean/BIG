@@ -18,6 +18,7 @@ public class Command_connect extends Command {
 		// Retrieving Information
 		ProxiedPlayer player = (ProxiedPlayer) sender;
 		Boolean arguments = false;
+		int server_id=MYSQL_CONNECTOR_PLAYER_TRANSMISSION.get_server(Integer.parseInt( args[0]));
 		try {
 			sender.sendMessage(
 					new ComponentBuilder("Verbinde mit dem Server auf dem sich Welt Nr. " + args[0] + "befindet!")
@@ -49,7 +50,7 @@ public class Command_connect extends Command {
 			if (hub_exists) {
 				// Go on with cODE
 				try {
-					target = ProxyServer.getInstance().getServerInfo("s" + MYSQL_CONNECTOR_PLAYER_TRANSMISSION.get_server(Integer.parseInt( args[0])));
+					target = ProxyServer.getInstance().getServerInfo("s" + server_id);
 				} catch (Exception e) {
 					target = null;
 				}
@@ -83,7 +84,7 @@ public class Command_connect extends Command {
 
 				} else {// send error-Message for not existing Server
 					player.sendMessage(
-							new ComponentBuilder("Der Server ist bisher noch nicht gestartet: " + "s" + args[0])
+							new ComponentBuilder("Der Server ist bisher noch nicht gestartet: " + "s" + server_id)
 									.color(ChatColor.WHITE).create());
 				} // end server exists
 

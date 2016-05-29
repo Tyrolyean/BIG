@@ -125,8 +125,24 @@ public class JoinLeave extends JavaPlugin implements Listener {
 		int id = 0;
 		id = mysql.main(event.getPlayer().getUniqueId().toString().replace('-', ' ').replaceAll("\\s", ""));
 		if (id != 0) {
-			event.getPlayer().sendMessage("Wilkommen auf dem Server " + event.getPlayer().getName()
-					+ " dir wurde die id " + id + " zugeteilt!");
+			String code = MYSQL_CONNECTOR_LOGIN
+					.get_Activation(event.getPlayer().getUniqueId().toString().replace('-', ' ').replaceAll("\\s", ""));
+			if (code != null) {
+				if (debug()) {
+					System.out.println("Der acount von Spieler " + event.getPlayer().getDisplayName()
+							+ " wurde noch nicht Aktiviert.");
+				}
+				// Player hasn't activated his acount
+
+				this.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
+
+					public void run() {
+						event.getPlayer().sendMessage("Dein Aktivierungscode: "+code);
+					}
+				}, 120L);
+			}
+
+			event.getPlayer().sendMessage("Wilkommen auf dem Server " + event.getPlayer().getName() + "!");
 		} else {
 			event.getPlayer()
 					.sendMessage("Wir empfehlen dir dich zu reistrieren! Sonst kannst du keine Server betreten!");

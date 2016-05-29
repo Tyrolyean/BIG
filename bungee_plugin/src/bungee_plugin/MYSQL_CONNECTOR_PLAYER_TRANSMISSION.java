@@ -18,9 +18,12 @@ public class MYSQL_CONNECTOR_PLAYER_TRANSMISSION {
 
 			conn = DriverManager.getConnection("jdbc:mysql://" + big.mysql + "/server_parts", "minecraft", "minecraft");
 			stmt = conn.createStatement();
-			ResultSet rs=stmt.executeQuery("SELECT server_id FROM worlds WHERE world_id="+world_id);
+			ResultSet rs=stmt.executeQuery("SELECT * FROM worlds WHERE world_id="+world_id);
 			while(rs.next()){
-				server_id=rs.getInt(1);
+				server_id=rs.getInt("server_id");
+			}
+			if(big.debug){
+				System.out.println("Server id aus welt "+world_id +" ist "+server_id);
 			}
 			stmt.close();
 			conn.close();

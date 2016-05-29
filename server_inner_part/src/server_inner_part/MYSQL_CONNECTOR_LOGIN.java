@@ -1,11 +1,13 @@
 package server_inner_part;
 
+import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.sql.*;
 
 public class MYSQL_CONNECTOR_LOGIN {
 	// JDBC driver name and database URL
 	static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
-	static final String DB_URL = "jdbc:mysql://"+JoinLeave.mysql+"/acounts"+"?useSSL=true";
+	static final String DB_URL = "jdbc:mysql://" + JoinLeave.mysql + "/acounts" + "?useSSL=true";
 
 	// Database credentials
 	static final String USER = "minecraft";
@@ -25,10 +27,10 @@ public class MYSQL_CONNECTOR_LOGIN {
 			// Executing query
 			stmt = conn.createStatement();
 			String sql;
-			sql = "SELECT id FROM acounts WHERE uuid = '"+playername+"'";
+			sql = "SELECT id FROM acounts WHERE uuid = '" + playername + "'";
 			System.out.print(sql);
 			ResultSet rs = stmt.executeQuery(sql);
-			sql =null;
+			sql = null;
 
 			// Extract data from result set
 			while (rs.next()) {
@@ -63,4 +65,57 @@ public class MYSQL_CONNECTOR_LOGIN {
 		System.out.println("End of stream!");
 		return id;
 	}// end main
+
+	public static String get_Activation(String uuid){//will be NULL if activated
+		String code=null;
+		Connection conn = null;
+		Statement stmt = null;
+		try {
+			// JDBC driver
+			Class.forName("com.mysql.jdbc.Driver");
+
+			// Open connection
+			conn = DriverManager.getConnection(DB_URL, USER, PASS);
+			stmt=conn.createStatement();
+			
+			ResultSet rs=stmt.executeQuery("SELECT * FROM acounts WHERE uuid='"+uuid+"'");
+			Boolean activated = null;
+			while(rs.next()){
+				activated=rs.getBoolean("activated");
+			}
+			if(activated==null){
+				activated=true;
+			}
+			if(activated){
+				stmt.close();
+				conn.close();
+				return null;
+			}
+			
+			
+			rs=null;
+			rs=stmt.executeQuery("SELECT * FROM activation WHERE uuid='"+uuid+"'");
+			while(rs.next()){
+				code=rs.getString("code");
+			}
+			if(code==null){
+				code=nextSessionId().substring(0, 11);
+				stmt.execute("INSERT INTO activation (uuid,code) VALUES('"+uuid+"','"+code+"')");
+			}
+			stmt.close();
+			conn.close();
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		if(JoinLeave.debug()){
+			System.out.println("Code of player with uuid "+uuid+" is "+code);
+		}
+		return code;
+	}
+	//generate random Strings
+	 private static SecureRandom random = new SecureRandom();
+
+	  public static String nextSessionId() {
+	    return new BigInteger(130, random).toString(130);
+	  }
 }
