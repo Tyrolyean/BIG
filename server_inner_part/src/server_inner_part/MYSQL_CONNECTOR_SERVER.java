@@ -17,6 +17,7 @@ public class MYSQL_CONNECTOR_SERVER {
 	static final String USER = "minecraft";
 	static final String PASS = "minecraft";
 
+	@SuppressWarnings("resource")
 	public static int get_new(String name, String type, String uuid) {
 		// JDBC driver name and database URL
 
@@ -131,9 +132,24 @@ public class MYSQL_CONNECTOR_SERVER {
 							"INSERT INTO worlds (server_ip,world_name,server_id,owner,expires,location,world_type,server_internal_number) VALUES('"
 									+ adress + "','" + name + "'," + server_id + ",'" + uuid + "'," + unixTime + ",'"
 									+ direction + 1 + name + "','" + type + "'," + 1 + ")");
+					rs=stmt.executeQuery("SELECT * FROM worlds WHERE server_internal_number=1 AND server_id="+server_id);
+					int world_id=0;
+					while(rs.next()){
+					world_id=rs.getInt("world_id");	
+					}
+					stmt.execute("INSERT INTO options (world_id) VALUES("+world_id+")");
+					if(JoinLeave.debug()){
+						System.out.println("Created options for world "+world_id);
+					}
+					
 					if (JoinLeave.debug()) {
 						System.out.println("Created the Server and the 1st spawn world in the MYSQL-Database");
 					}
+					
+					
+					
+					
+					
 				} else {// The player has already a Server. Adding a new world
 						// to the Server
 					// GET the maximal Server internal number
@@ -155,7 +171,20 @@ public class MYSQL_CONNECTOR_SERVER {
 					stmt.execute(
 							"INSERT INTO worlds (server_ip,world_name,server_id,owner,expires,location,world_type,server_internal_number) VALUES('"
 									+ ip + "','" + name + "'," + server_id + ",'" + uuid + "'," + unixTime + ",'"
-									+ direction + internal_number + name + "','" + type + "'," + internal_number + ")");
+									+ direction + internal_number + name + "','" + type + "'," + (internal_number+1) + ")");
+					rs=null;
+					rs=stmt.executeQuery("SELECT * FROM worlds WHERE server_internal_number="+(internal_number+1)+" AND server_id="+server_id);
+					int world_id=0;
+					while(rs.next()){
+					world_id=rs.getInt("world_id");	
+					}
+					stmt.execute("INSERT INTO options (world_id) VALUES("+world_id+")");
+					if(JoinLeave.debug()){
+						System.out.println("Created options for world "+world_id);
+					}
+					
+					
+					
 					if (JoinLeave.debug()) {
 						System.out.println("Added world to existing Server with Server_id " + server_id
 								+ " and Server internal number " + internal_number);

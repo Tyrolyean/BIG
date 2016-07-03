@@ -60,7 +60,7 @@ public class JoinLeave extends JavaPlugin implements Listener {
 		// To prevent the usage of the apache commons
 
 		try {
-			final File[] libs = new File[] { new File(getDataFolder(), "commons-net-3.4.jar"),
+			final File[] libs = new File[] { new File(getDataFolder(), "commons-net-3.5.jar"),
 					new File(getDataFolder(), "jsch-0.1.53.jar") };
 			for (final File lib : libs) {
 				if (!lib.exists()) {
@@ -134,12 +134,12 @@ public class JoinLeave extends JavaPlugin implements Listener {
 				}
 				// Player hasn't activated his acount
 
-				this.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
+				JoinLeave.plugin.getServer().getScheduler().runTaskLater(this, new Runnable() {
 
 					public void run() {
 						event.getPlayer().sendMessage("Dein Aktivierungscode: "+code);
 					}
-				}, 120L);
+				}, 20L);
 			}
 
 			event.getPlayer().sendMessage("Wilkommen auf dem Server " + event.getPlayer().getName() + "!");
@@ -221,7 +221,7 @@ public class JoinLeave extends JavaPlugin implements Listener {
 				bw.write("\nlobby_world: " + Lobby.getWorld());
 				bw.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
+				
 				e.printStackTrace();
 			}
 			// written
@@ -250,5 +250,20 @@ public class JoinLeave extends JavaPlugin implements Listener {
 		}
 		return false;
 	}
+	
+	public void someFunction(final String code,final Player player) {
+	    new Thread(new Runnable() {
+	        public void run(){
+	            try {
+					Thread.sleep(500);
+					player.sendMessage("Dein Aktivierungscode ist "+code);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+	        }
+	    }).start();
+	}
+	
+	
 
 }

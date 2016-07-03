@@ -1,8 +1,15 @@
 package server_outer_part;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.lang.management.ManagementFactory;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -29,18 +36,29 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.player.PlayerBedEnterEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
+import org.bukkit.event.player.PlayerLoginEvent.Result;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionAttachment;
+import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
+import serializers.InventorySerializer;
 
 public class Person_splitter extends JavaPlugin implements Listener {
 
 	// To anyone who can read this. If you are allowed
 	// to do this, hello, else FUCK YOU , this is my code ! leave it alone.
 	// If you have any Questions please contact me at Tyrolyean@gmx.at
-	// Copyright Tyrolyean 2016
+	// ©Tyrolyean 2016
 	// if you copy my code i will sue you into hell!!!!
 	// It was very Hard to write this code so please let me my rights.
 	// Maybe I should rewrite half of it, but this comes later :D
@@ -174,6 +192,7 @@ public class Person_splitter extends JavaPlugin implements Listener {
 					}
 				}
 			}, 0L);// End of creation
+			this.getServer().set
 		} // End of for
 	}
 
@@ -190,6 +209,37 @@ public class Person_splitter extends JavaPlugin implements Listener {
 
 	@EventHandler(priority = EventPriority.HIGH)
 	public void onPlayerQuit(PlayerQuitEvent event) {
+		if (debug) {
+			System.out.println("Setting file Inventory for Player " + event.getPlayer().getUniqueId().toString());
+		}
+		File file = new File(System.getProperty("user.dir") + "/plugins/BIG/inventorys/"
+				+ event.getPlayer().getLocation().getWorld().getName() + "/"
+				+ event.getPlayer().getUniqueId().toString());
+		file.mkdirs();
+		file.delete();
+		try {
+			file.createNewFile();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		try {
+			JsonArray inventory = InventorySerializer
+					.serializeInventory(event.getPlayer().getInventory().getContents());
+			JsonObject object = new JsonObject();
+			object.add("1", inventory);
+			FileWriter writer = new FileWriter(file);
+			writer.write(inventory.getAsString());
+			writer.flush();
+			writer.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		try {
+
+		} catch (Exception e1) {
+			e1.printStackTrace();
+		}
 
 		// register last position of player in config
 		this.getConfig().set(
@@ -201,6 +251,7 @@ public class Person_splitter extends JavaPlugin implements Listener {
 		this.getConfig().set(
 				"y" + event.getPlayer().getLocation().getWorld().getName() + event.getPlayer().getDisplayName(),
 				event.getPlayer().getLocation().getY());
+		players.remove(event.getPlayer());
 		try {
 			this.getConfig().save(System.getProperty("user.dir") + "/plugins/BIG/players.yml");
 		} catch (IOException e) {
@@ -209,30 +260,167 @@ public class Person_splitter extends JavaPlugin implements Listener {
 	}
 
 	@EventHandler
-	public void PlayerLogin(PlayerLoginEvent event) {
-		MYSQL_CONNECTOR_LOGIN mysqllogin = new MYSQL_CONNECTOR_LOGIN();
-		int id = 0;
-		id = mysqllogin.main(event.getPlayer().getUniqueId().toString().replace('-', ' ').replaceAll("\\s", ""));
-		if (id != 0) {
-			event.getPlayer().sendMessage("[SERVER] Wilkommen" + event.getPlayer().getName());
-			// set and get target world
-			if (debug) {
-				this.getLogger().info("[SERVER] " + event.getPlayer().getDisplayName() + " Hat die Welt betreten.");
+	public void PlayerJoin(PlayerJoinEvent event) {
+
+		joins++;
+		PermissionAttachment attachment = event.getPlayer().addAttachment(this);
+		attachment.getPermissible().recalculatePermissions();
+		permissions.put(event.getPlayer().getUniqueId(), attachment);
+		OTHER_THINGS.update_player_permissions();
+		World world = players.get(event.getPlayer());
+
+		Location templocation = spawns.get(world);
+		try {
+			if (templocation == null) {
+				templocation = new Location(world,
+						this.getConfig().getInt("x" + world.getName() + event.getPlayer().getDisplayName()),
+						this.getConfig().getInt("y" + world.getName() + event.getPlayer().getDisplayName()),
+						this.getConfig().getInt("z" + world.getName() + event.getPlayer().getDisplayName()));
+				if (templocation.getX() == 0 && templocation.getY() == 0 && templocation.getZ() == 0) {
+					templocation = world.getSpawnLocation();
+				}
+			} else if ((templocation.getX() == 0 && templocation.getY() == 0 && templocation.getZ() == 0)) {
+				templocation = new Location(world,
+						this.getConfig().getInt("x" + world.getName() + event.getPlayer().getDisplayName()),
+						this.getConfig().getInt("y" + world.getName() + event.getPlayer().getDisplayName()),
+						this.getConfig().getInt("z" + world.getName() + event.getPlayer().getDisplayName()));
+				if (templocation.getX() == 0 && templocation.getY() == 0 && templocation.getZ() == 0) {
+					templocation = world.getSpawnLocation();
+				}
 			}
-			if (this.getServer().getOnlinePlayers().size() > 5) {
-				event.setKickMessage("Es befinden sich momentan zu viele Spieler in dieser Welt!");
-			} else {
-				this.getServer().broadcastMessage(event.getPlayer().getDisplayName() + " hat den Server betreten!");
-				String target = MYSQL_CONNECTOR_OPTIONS.get_spawn_world(event.getPlayer());
-				Location templocation = new Location(this.getServer().getWorld(target),
-						this.getConfig().getInt("x" + target + event.getPlayer().getDisplayName()),
-						this.getConfig().getInt("y" + target + event.getPlayer().getDisplayName()),
-						this.getConfig().getInt("z" + target + event.getPlayer().getDisplayName()));
-				event.getPlayer().teleport(templocation);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		if (debug) {
+			this.getLogger().info("Setting Player " + event.getPlayer().getCustomName() + " to World "
+					+ templocation.getWorld().getName());
+		}
+		event.getPlayer().teleport(templocation);
+		event.getPlayer().setGameMode(gamemodes.get(event.getPlayer().getLocation().getWorld()));
+
+		// Set Player inventory from Files
+		try {
+			if (debug) {
+				this.getLogger().info("Getting Inventory for Player " + event.getPlayer().getUniqueId().toString()
+						+ " in World " + templocation.getWorld().getName());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		File file = new File(System.getProperty("user.dir") + "/plugins/BIG/inventorys/"
+				+ templocation.getWorld().getName() + "/" + event.getPlayer().getUniqueId().toString());
+		event.getPlayer().getInventory().clear();
+		if (file.exists()) {
+			ItemStack[] inventory = null;
+			try {
+				BufferedReader reader = new BufferedReader(new FileReader(file));
+				String object_tmp = reader.readLine();
+				reader.close();
+				JsonObject object = new JsonObject();
+				object.get(object_tmp);
+				inventory = InventorySerializer.deserializeInventory((JsonArray) object.get("1"),
+						((JsonArray) object.get("1")).size());
+
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 
+			event.getPlayer().getInventory().setContents(inventory);
+			/*
+			 * if (debug) { this.getLogger().info("Setting Player Inventory:");
+			 * for (ItemStack item : inventory) { System.out.println(item); } }
+			 */
+		}
+
+	}
+
+	@EventHandler
+	public void onPlayerBedEnter(PlayerBedEnterEvent event) {
+		this.getConfig().set("spawn_x" + event.getPlayer().getUniqueId() + event.getPlayer().getWorld().getName(),
+				event.getBed().getLocation().getBlockX());
+		this.getConfig().set("spawn_y" + event.getPlayer().getUniqueId() + event.getPlayer().getWorld().getName(),
+				event.getBed().getLocation().getBlockY());
+		this.getConfig().set("spawn_z" + event.getPlayer().getUniqueId() + event.getPlayer().getWorld().getName(),
+				event.getBed().getLocation().getBlockZ());
+		try {
+			this.getConfig().save(System.getProperty("user.dir") + "/plugins/BIG/players.yml");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	@EventHandler
+	public void onPlayerRespawn(PlayerRespawnEvent event) {
+		if (this.getConfig()
+				.getInt("spawn_x" + event.getPlayer().getUniqueId() + event.getPlayer().getWorld().getName()) == 0
+				&& this.getConfig().getInt(
+						"spawn_y" + event.getPlayer().getUniqueId() + event.getPlayer().getWorld().getName()) == 0
+				&& this.getConfig().getInt(
+						"spawn_z" + event.getPlayer().getUniqueId() + event.getPlayer().getWorld().getName()) == 0) {
+			event.setRespawnLocation(players.get(event.getPlayer()).getSpawnLocation());
 		} else {
-			event.setKickMessage("Du musst dich auf www.ownworld.at registrieren bevor du  Server betreten kannst!");
+			event.setRespawnLocation(new Location(players.get(event.getPlayer()),
+					this.getConfig().getInt(
+							"spawn_x" + event.getPlayer().getUniqueId() + event.getPlayer().getWorld().getName()),
+					this.getConfig().getInt(
+							"spawn_y" + event.getPlayer().getUniqueId() + event.getPlayer().getWorld().getName()),
+					this.getConfig().getInt(
+							"spawn_z" + event.getPlayer().getUniqueId() + event.getPlayer().getWorld().getName())));
+		}
+	}
+
+	@EventHandler
+	public void PlayerLogin(PlayerLoginEvent event) {
+		try {// yes this is a try!
+			if (debug) {
+				this.getLogger().info("A player has entered the Server! His uuid="
+						+ event.getPlayer().getUniqueId().toString().replace('-', ' ').replaceAll("\\s", ""));
+			}
+			int id = 0;
+			String target = MYSQL_CONNECTOR_OPTIONS.get_spawn_world(event.getPlayer());
+			int maxplayers = MYSQL_CONNECTOR_LOGIN.get_max_players(target);
+
+			id = MYSQL_CONNECTOR_LOGIN
+					.main(event.getPlayer().getUniqueId().toString().replace('-', ' ').replaceAll("\\s", ""));
+			if (id > 0) {
+				event.getPlayer().sendMessage("[SERVER] Wilkommen" + event.getPlayer().getName());
+				// set and get target world
+				if (debug) {
+					this.getLogger().info("[SERVER] " + event.getPlayer().getDisplayName() + " Hat die Welt betreten.");
+				}
+				if (this.getServer().getWorld(target).getPlayers().size() > maxplayers) {
+					event.setResult(Result.KICK_FULL);
+					event.setKickMessage("Es befinden sich momentan zu viele Spieler in dieser Welt!");
+				} else {
+					players.put(event.getPlayer(), Person_splitter.server.getWorld(target));
+					this.getServer().broadcastMessage(event.getPlayer().getDisplayName() + " hat den Server betreten!");
+				}
+			} else {
+				if (debug) {
+					this.getLogger()
+							.info("Oh well, he had to leave... Exit-code was " + id + " \n P.S.: No! I'm not HTML");
+				}
+				if (id == -1) {
+					event.setResult(Result.KICK_OTHER);
+
+					event.setKickMessage("Aktiviere deinen Acount! Ja das hat auch einen Sinn!");
+				} else {
+					event.setResult(Result.KICK_OTHER);
+
+					event.setKickMessage(
+							"Du musst dich auf www.ownworld.at registrieren bevor du  Server betreten kannst!");
+				}
+
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		if (debug) {
+			this.getLogger().info("Player-join-event is over for now!");
 		}
 	}
 	// Commands
@@ -245,7 +433,39 @@ public class Person_splitter extends JavaPlugin implements Listener {
 		if (cmd.getName().equalsIgnoreCase("ping")) {
 			sender.sendMessage("pong");
 		} else if (cmd.getName().equalsIgnoreCase("world")) {
-			System.out.println(" s");
+			sender.sendMessage("Du bist in welt "
+					+ sender.getServer().getPlayer(sender.getName()).getLocation().getWorld().getName() + " in XYZ: "
+					+ sender.getServer().getPlayer(sender.getName()).getLocation().getBlockX() + " "
+					+ sender.getServer().getPlayer(sender.getName()).getLocation().getBlockY() + " "
+					+ sender.getServer().getPlayer(sender.getName()).getLocation().getBlockZ());
+		} else if (cmd.getName().equalsIgnoreCase("permissions")) {
+			if (!debug) {
+				return true;
+			}
+			sender.sendMessage("Du hast folgende Permissions:\nEffektiv erteilt:");
+			ArrayList<String> permissions=new ArrayList<String>();
+			
+			for (PermissionAttachmentInfo permission : sender.getEffectivePermissions()) {
+				try {
+					if (permission.getAttachment() != null) {
+						sender.sendMessage(
+								"  " + permission.getPermission() + permission.getAttachment().getPlugin().getName());
+						permissions.add(permission.getPermission());
+					}
+				} catch (Exception e) {
+					sender.sendMessage(permission.getPermission());
+
+				}
+			}
+			sender.sendMessage("Überprüfung dieser Permissions:");
+			for(String permission:permissions){
+				sender.sendMessage(" "+permission+": "+this.getServer().getPlayer(sender.getName()).hasPermission(permission));
+			}
+			sender.sendMessage("Generelle Permissionüberprüfung:");
+			for(Permission perm:server.getPluginManager().getPermissions()){
+				sender.sendMessage(" "+perm.getName()+": "+server.getPlayer(sender.getName()).hasPermission(perm));
+			}
+			
 		}
 		return true;
 	}
@@ -302,17 +522,38 @@ public class Person_splitter extends JavaPlugin implements Listener {
 		deaths++;
 	}
 
-	@EventHandler
-	public void onPlayerJoin(PlayerJoinEvent event) {
-		
-		joins++;
-		PermissionAttachment attachment = event.getPlayer().addAttachment(this);
-		permissions.put(event.getPlayer().getUniqueId(), attachment);
-		OTHER_THINGS.update_player_permissions();
+	public void someFunction(final String code, final Player player) {
+		new Thread(new Runnable() {
+			public void run() {
+				try {
+					Thread.sleep(500);
+					player.sendMessage("Dein Aktivierungscode ist " + code);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}).start();
 	}
-	public static HashMap<World,Location> spawns;
-	public static HashMap<World,GameMode> gamemodes;
-	public static HashMap<UUID, PermissionAttachment> permissions =new HashMap<UUID, PermissionAttachment>();
+
+	// For saving and writing something to a File:
+	public static void writeObject(Object obj, String path) throws Exception {
+		ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(path));
+		oos.writeObject(obj);
+		oos.flush();
+		oos.close();
+	}
+
+	public static Object readObject(String path) throws Exception {
+		ObjectInputStream ois = new ObjectInputStream(new FileInputStream(path));
+		Object returner = ois.readObject();
+		ois.close();
+		return returner;
+	}
+
+	public static HashMap<Player, World> players = new HashMap<Player, World>();
+	public static HashMap<World, Location> spawns = new HashMap<World, Location>();
+	public static HashMap<World, GameMode> gamemodes = new HashMap<World, GameMode>();
+	public static HashMap<UUID, PermissionAttachment> permissions = new HashMap<UUID, PermissionAttachment>();
 	// Global Variables for stats
 	public static int deaths;
 	public static int joins;

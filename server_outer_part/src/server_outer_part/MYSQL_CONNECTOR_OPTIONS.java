@@ -28,7 +28,6 @@ public class MYSQL_CONNECTOR_OPTIONS {
 		Connection conn = null;
 		Statement stmt = null;
 		int internal = 0;
-		int id = 0;
 		String name = null;
 		try {
 
@@ -53,14 +52,17 @@ public class MYSQL_CONNECTOR_OPTIONS {
 				Person_splitter.logger.info("Got host adress: " + i);
 			}
 			String sql;
-			ResultSet ider = stmt.executeQuery("SELECT default_world,id FROM server_location WHERE adress ='" + i
-					+ "' AND port =" + Person_splitter.server.getPort());
+			ResultSet ider = stmt.executeQuery("SELECT * FROM server_location WHERE id="+Person_splitter.server_id);
 			while (ider.next()) {
 				internal = ider.getInt("default_world");
-				id = ider.getInt("id");
 			}
-			sql = "SELECT * FROM worlds WHERE server_id=" + id + " AND server_internal_number =" + internal;
-			System.out.print(sql);
+			if(internal==0){
+				ider.close();
+				stmt.close();
+				conn.close();
+				return null;
+			}
+			sql = "SELECT * FROM worlds WHERE server_id=" +Person_splitter.server_id + " AND server_internal_number =" + internal;
 			ResultSet rs = stmt.executeQuery(sql);
 			sql = null;
 
@@ -70,9 +72,7 @@ public class MYSQL_CONNECTOR_OPTIONS {
 				name = rs.getString("world_name");
 			}
 			// Close Connection
-			rs.close();
-			stmt.close();
-			conn.close();
+			
 		} catch (SQLException se) {
 			// Handle errors for JDBC
 			se.printStackTrace();
@@ -504,11 +504,15 @@ public class MYSQL_CONNECTOR_OPTIONS {
 			//Get options from the Database
 			rs=null;
 			for(int i:world_ids){
+				
 				//Get Name of the world.
 				rs=stmt.executeQuery("SELECT * FROM worlds WHERE world_id="+i);
 				String world_as_saved=null;
 				while(rs.next()){
 					world_as_saved=rs.getInt("server_internal_number")+rs.getString("world_name");
+				}
+				if(Person_splitter.debug){
+					Person_splitter.logger.info("Adding world with id "+i+" and world_name "+world_as_saved);
 				}
 				rs=null;
 				ArrayList<Object> tmp =new ArrayList<Object>();
@@ -516,6 +520,7 @@ public class MYSQL_CONNECTOR_OPTIONS {
 				rs=stmt.executeQuery("SELECT * FROM options WHERE world_id="+i);
 				
 				while(rs.next()){
+					
 					//Put thing into the ArrayList
 					tmp.add(rs.getShort("difficulty"));
 					tmp.add(rs.getShort("gamemode"));
@@ -526,6 +531,12 @@ public class MYSQL_CONNECTOR_OPTIONS {
 					tmp.add(rs.getInt("spawn_x"));
 					tmp.add(rs.getInt("spawn_y"));
 					tmp.add(rs.getInt("spawn_z"));
+				}
+				if(Person_splitter.debug){
+					Person_splitter.logger.info("Options for this world: ");
+					for(Object ii:tmp){
+						Person_splitter.logger.info(""+ii);
+					}
 				}
 				//Put this options into the Hashmap that will be returned
 				options.put(world_as_saved, tmp);

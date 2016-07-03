@@ -373,8 +373,8 @@ public class Create_Server extends JavaPlugin {
 			writer = new PrintWriter(tDir + "/server.properties");
 			writer.println("#Minecraft server properties");
 			writer.println("#Sun Feb 21 11:21:29 CET 2016");
-			writer.println("generator-settings=");
-			writer.println("op-permission-level=4");
+			writer.println("generator-settings= 3;minecraft:air;127;decoration");
+			writer.println("op-permission-level=3");
 			writer.println("allow-nether=false");
 			writer.println("resource-pack-hash=");
 			writer.println("level-name=world");
@@ -383,7 +383,7 @@ public class Create_Server extends JavaPlugin {
 			writer.println("announce-player-achievements=true");
 			writer.println("server-port=" + Port);
 			writer.println("max-world-size=29999984");
-			writer.println("level-type=SUPERFLAT");
+			writer.println("level-type=CUSTOMIZED");
 			writer.println("enable-rcon=true");
 			writer.println("level-seed=");
 			writer.println("force-gamemode=true");
@@ -399,7 +399,7 @@ public class Create_Server extends JavaPlugin {
 			writer.println("resource-pack=");
 			writer.println("pvp=true");
 			writer.println("difficulty=1");
-			writer.println("enable-command-block=false");
+			writer.println("enable-command-block=true");
 			writer.println("gamemode=0");
 			writer.println("player-idle-timeout=0");
 			writer.println("max-players=20");
@@ -426,15 +426,15 @@ public class Create_Server extends JavaPlugin {
 				server.makeDirectory(path + "/" + id + "/plugins/");
 			}
 			// create Directory for Permissions Ex
-
-			if (JoinLeave.debug()) {
+			//PEX is no longer needed becouse the outer-part is the new permission-plugin
+			/*if (JoinLeave.debug()) {
 				System.out.println(server.makeDirectory(path + "/" + id + "/plugins/PermissionsEx/"));
 			} else {
 				server.makeDirectory(path + "/" + id + "/plugins/PermissionsEx/");
-			}
+			}*/
 			// Create PermissionsEx config
-
-			if (JoinLeave.debug()) {
+			//Deprecated
+			/*if (JoinLeave.debug()) {
 				System.out.println("Creating File config.yml for Permissions Ex");
 			}
 			writer = new PrintWriter(tDir + "/config.yml");
@@ -472,7 +472,7 @@ public class Create_Server extends JavaPlugin {
 				server.storeFile(path + "/" + id + "/plugins/PermissionsEx/config.yml",
 						new FileInputStream(tDir + "/config.yml"));
 				new File(tDir + "/config.yml").delete();
-			}
+			}*///end of pex config 
 
 			// The firs world will be created because of an MYSQL_Entry
 		} catch (Exception e) {
@@ -493,9 +493,7 @@ public class Create_Server extends JavaPlugin {
 			// Copy outer Part of this Plugin
 			server.storeFile(path + "/" + id + "/plugins/outer_part.jar",
 					new FileInputStream(files.toString() + "/outer_part.jar"));
-			// Copy PermissionsEx
-			server.storeFile(path + "/" + id + "/plugins/PermissionsEx.jar",
-					new FileInputStream(files.toString() + "/PermissionsEx.jar"));
+
 			if (JoinLeave.debug()) {
 				System.out.println("Copyed all Files from 0 Directory. Attempting to Start start.sh file!");
 			}
@@ -556,7 +554,6 @@ public class Create_Server extends JavaPlugin {
 					} catch (IOException e1) {
 						e1.printStackTrace();
 					} catch (InterruptedException e1) {
-						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					} finally {
 						if (channel != null)

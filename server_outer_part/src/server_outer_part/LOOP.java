@@ -32,7 +32,7 @@ public class LOOP {
 		// worlds are updated with an mysql-Databse
 		// In an earlyer Version of this Plugin MultiVerse Core was used so if
 		// you find something from Multiverse please delete it
-		// RAM is controled over MYSQL and the Restart SCRIPT, som if a
+		// RAM is controled over MYSQL and the Restart SCRIPT, if a
 		// RAM-Change is detected
 		// the server has to restart which happens over the script and the
 		// command-line
@@ -50,7 +50,7 @@ public class LOOP {
 
 			}
 
-		}, 3600000, 3600000);
+		},0, 3600000);
 		Timer timer = new Timer();
 		timer.scheduleAtFixedRate(new TimerTask() {
 			@Override
@@ -121,10 +121,9 @@ public class LOOP {
 						}
 						writer.close();
 						sh.setExecutable(true);
-						// Person_splitter.server.dispatchCommand(Person_splitter.server.getConsoleSender(),
-						// "restart");
+						Person_splitter.server.dispatchCommand(Person_splitter.server.getConsoleSender(),
+						"restart");
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
@@ -196,56 +195,68 @@ public class LOOP {
 				// Update world_settings for every world.
 
 				for (World world : Person_splitter.server.getWorlds()) {
-
+					
+					if(Person_splitter.debug){
+						Person_splitter.logger.info("Checking for world "+world.getName());
+					}
+					
+					
 					ArrayList<Object> world_options = options.get(world.getName());
+					if(world_options==null){
+						continue;
+					}
 					// Set Difficulty
-					if (world_options.get(0).equals(0)) {
+					if ((Short)world_options.get(0)==0) {
 						world.setDifficulty(Difficulty.PEACEFUL);
-					} else if (world_options.get(0).equals(1)) {
+					} else if ((Short)world_options.get(0)==1) {
 						world.setDifficulty(Difficulty.EASY);
-					} else if (world_options.get(0).equals(2)) {
+					} else if ((Short)world_options.get(0)==2) {
 						world.setDifficulty(Difficulty.NORMAL);
-					} else if (world_options.get(0).equals(3)) {
+					} else if ((Short)world_options.get(0)==3) {
 						world.setDifficulty(Difficulty.HARD);
 					} else {
 						world.setDifficulty(Difficulty.NORMAL);
 					}
 					// Set default Gamemode
-					if (world_options.get(1).equals(0)) {
+					if ((Short)world_options.get(1)==0) {
+						/*
 						if (Person_splitter.gamemodes.get(world) != null) {
 							Person_splitter.gamemodes.replace(world, GameMode.SURVIVAL);
 						} else {
 							Person_splitter.gamemodes.put(world, GameMode.SURVIVAL);
-						}
-
-					} else if (world_options.get(1).equals(1)) {
+						}*/
+						Person_splitter.gamemodes.put(world, GameMode.SURVIVAL);
+					} else if ((Short)world_options.get(1)==1) {
+						/*
 						if (Person_splitter.gamemodes.get(world) != null) {
 							Person_splitter.gamemodes.replace(world, GameMode.CREATIVE);
 						} else {
 							Person_splitter.gamemodes.put(world, GameMode.CREATIVE);
-						}
-
-					} else if (world_options.get(1).equals(2)) {
+						}*/
+						Person_splitter.gamemodes.put(world, GameMode.CREATIVE);
+					} else if ((Short)world_options.get(1)==2) {
+						/*
 						if (Person_splitter.gamemodes.get(world) != null) {
 							Person_splitter.gamemodes.replace(world, GameMode.ADVENTURE);
 						} else {
 							Person_splitter.gamemodes.put(world, GameMode.ADVENTURE);
-						}
-
-					} else if (world_options.get(1).equals(3)) {
+						}*/
+						Person_splitter.gamemodes.put(world, GameMode.ADVENTURE);
+					} else if ((Short)world_options.get(1)==3) {
+						/*
 						if (Person_splitter.gamemodes.get(world) != null) {
 							Person_splitter.gamemodes.replace(world, GameMode.SPECTATOR);
 						} else {
 							Person_splitter.gamemodes.put(world, GameMode.SPECTATOR);
-						}
-
+						}*/
+						Person_splitter.gamemodes.put(world, GameMode.SPECTATOR);
 					} else {
-						if (Person_splitter.gamemodes.get(world) != null) {
+						/*if (Person_splitter.gamemodes.get(world) != null) {
 							Person_splitter.gamemodes.replace(world, GameMode.SURVIVAL);
 						} else {
 							Person_splitter.gamemodes.put(world, GameMode.SURVIVAL);
-						}
-
+						}*/
+						Person_splitter.gamemodes.put(world, GameMode.SURVIVAL);
 					}
 					// animal and Monster-Spawnrate
 					world.setTicksPerAnimalSpawns((int) world_options.get(2));
@@ -257,26 +268,29 @@ public class LOOP {
 					}
 					// set if the players can hurt eachother
 					world.setPVP((boolean) world_options.get(5));
+					Person_splitter.spawns.clear();
 
 					if ((int) world_options.get(6) == 0 && (int) world_options.get(7) == 0
 							&& (int) world_options.get(7) == 0) {
 						// Here if the Admin says that the persons should spawn,
 						// where they left the last time.
 						// Putting into Hashmap
-						if (Person_splitter.spawns.get(world) != null) {
+						/*if (Person_splitter.spawns.get(world) != null) {
 							Person_splitter.spawns.replace(world, new Location(world, 0, 0, 0));
 						} else {
 							Person_splitter.spawns.put(world, new Location(world, 0, 0, 0));
-						}
+						}*/
+						Person_splitter.spawns.put(world, new Location(world, 0, 0, 0));
 					} else {
-						if (Person_splitter.spawns.get(world) != null) {
+						/*if (Person_splitter.spawns.get(world) != null) {
 							Person_splitter.spawns.replace(world, new Location(world, (int) world_options.get(6),
 									(int) world_options.get(7), (int) world_options.get(8)));
 						} else {
 							Person_splitter.spawns.put(world, new Location(world, (int) world_options.get(6),
 									(int) world_options.get(7), (int) world_options.get(8)));
-						}
-
+						}*/
+						Person_splitter.spawns.put(world, new Location(world, (int) world_options.get(6),
+								(int) world_options.get(7), (int) world_options.get(8)));
 					}
 
 				}
