@@ -16,13 +16,18 @@ public class MYSQL_CONNECTOR_UNREGISTER_SERVER {
 		try {
 		     con = DriverManager.getConnection(url, user, password);
 		     Statement st = (Statement) con.createStatement(); 
-		     st.executeUpdate("UPDATE server_location SET online = 0 WHERE id='"+Person_splitter.server_id+"'");
+		     
+		     
+		     st.execute("UPDATE server_location SET online = 0 WHERE id='"+Person_splitter.server_id+"'");
+		     
+		     
+		     st.close();;
 		     con.close();
-		     return "No error occured on Disabling Big plugin"; 
+		     return "No error occured on Disabling Big plugin!"; 
 		}
 
 		catch (SQLException ex) {
-			return ex.toString();
+			return "Couldn't disable BIG! \n"+ex.toString();
 		 } 
 		
 	}

@@ -14,6 +14,7 @@ public class big extends Plugin implements Listener{
 	public static String mysql="192.168.0.102";
 	//Global DEBUG
 	public static boolean debug=true;
+	public static String motd="Test Test \n 123";
     @Override
     //on Enable
     public void onEnable() {

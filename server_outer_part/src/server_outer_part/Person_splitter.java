@@ -6,12 +6,13 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.management.ManagementFactory;
+import java.net.InetAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -192,8 +193,25 @@ public class Person_splitter extends JavaPlugin implements Listener {
 					}
 				}
 			}, 0L);// End of creation
-			this.getServer().set
 		} // End of for
+		
+		//Look if the Server can reach the Database. Else a bootloop will be initiated!
+		try {
+			if(!InetAddress.getByName(database).isReachable(2000)){
+				this.getServer().broadcastMessage("Vebindung zum Controler konnte nicht Aufgebaut werden. Bitte benachrichtige einen Servermitarbeiter! Der Server startet nun neu!");
+				server.dispatchCommand(server.getConsoleSender(), "restart");
+				
+			}
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		};
+		
+		
+		
 	}
 
 	@Override
@@ -209,38 +227,9 @@ public class Person_splitter extends JavaPlugin implements Listener {
 
 	@EventHandler(priority = EventPriority.HIGH)
 	public void onPlayerQuit(PlayerQuitEvent event) {
-		if (debug) {
-			System.out.println("Setting file Inventory for Player " + event.getPlayer().getUniqueId().toString());
-		}
-		File file = new File(System.getProperty("user.dir") + "/plugins/BIG/inventorys/"
-				+ event.getPlayer().getLocation().getWorld().getName() + "/"
-				+ event.getPlayer().getUniqueId().toString());
-		file.mkdirs();
-		file.delete();
-		try {
-			file.createNewFile();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		try {
-			JsonArray inventory = InventorySerializer
-					.serializeInventory(event.getPlayer().getInventory().getContents());
-			JsonObject object = new JsonObject();
-			object.add("1", inventory);
-			FileWriter writer = new FileWriter(file);
-			writer.write(inventory.getAsString());
-			writer.flush();
-			writer.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 
-		try {
 
-		} catch (Exception e1) {
-			e1.printStackTrace();
-		}
-
+		
 		// register last position of player in config
 		this.getConfig().set(
 				"z" + event.getPlayer().getLocation().getWorld().getName() + event.getPlayer().getDisplayName(),
@@ -257,6 +246,11 @@ public class Person_splitter extends JavaPlugin implements Listener {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+		//save the Player Inventory
+		inventory.save_Inventory(event.getPlayer());
+		
+		
 	}
 
 	@EventHandler

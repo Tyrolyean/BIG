@@ -1,5 +1,8 @@
 package bungee_plugin;
 
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -34,6 +37,20 @@ public class LOOP {
 					//If Minecraft-Services are offline disable online Mode
 					//This will come in the next version
 									
+					
+					//Inform Players that theServers are down!
+					try {
+						if(!InetAddress.getByName(big.mysql).isReachable(2000)){
+							
+						}
+					} catch (UnknownHostException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					};
+					
 					
 					// Here it stops to do this
 				}
