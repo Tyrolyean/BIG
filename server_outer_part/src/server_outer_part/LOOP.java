@@ -50,7 +50,7 @@ public class LOOP {
 
 			}
 
-		},0, 3600000);
+		}, 0, 3600000);
 		Timer timer = new Timer();
 		timer.scheduleAtFixedRate(new TimerTask() {
 			@Override
@@ -110,7 +110,7 @@ public class LOOP {
 							Person_splitter.logger.info("Got Row where MAXHAEP is defined: " + row_);
 						}
 						// SET ROW TO NEW HEAP
-						content.set(row_, "MAXHEAP=" + ram + "M");
+						content.set(row_, "MAXHEAP=" + ram);
 						//
 						Files.delete(sh.toPath());
 						sh.createNewFile();
@@ -121,8 +121,7 @@ public class LOOP {
 						}
 						writer.close();
 						sh.setExecutable(true);
-						Person_splitter.server.dispatchCommand(Person_splitter.server.getConsoleSender(),
-						"restart");
+						Person_splitter.server.dispatchCommand(Person_splitter.server.getConsoleSender(), "restart");
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
@@ -195,67 +194,72 @@ public class LOOP {
 				// Update world_settings for every world.
 
 				for (World world : Person_splitter.server.getWorlds()) {
-					
-					if(Person_splitter.debug){
-						Person_splitter.logger.info("Checking for world "+world.getName());
+
+					if (Person_splitter.debug) {
+						Person_splitter.logger.info("Checking for world " + world.getName());
 					}
-					
-					
+
 					ArrayList<Object> world_options = options.get(world.getName());
-					if(world_options==null){
+					if (world_options == null) {
 						continue;
 					}
 					// Set Difficulty
-					if ((Short)world_options.get(0)==0) {
+					if ((Short) world_options.get(0) == 0) {
 						world.setDifficulty(Difficulty.PEACEFUL);
-					} else if ((Short)world_options.get(0)==1) {
+					} else if ((Short) world_options.get(0) == 1) {
 						world.setDifficulty(Difficulty.EASY);
-					} else if ((Short)world_options.get(0)==2) {
+					} else if ((Short) world_options.get(0) == 2) {
 						world.setDifficulty(Difficulty.NORMAL);
-					} else if ((Short)world_options.get(0)==3) {
+					} else if ((Short) world_options.get(0) == 3) {
 						world.setDifficulty(Difficulty.HARD);
 					} else {
 						world.setDifficulty(Difficulty.NORMAL);
 					}
 					// Set default Gamemode
-					if ((Short)world_options.get(1)==0) {
+					if ((Short) world_options.get(1) == 0) {
 						/*
-						if (Person_splitter.gamemodes.get(world) != null) {
-							Person_splitter.gamemodes.replace(world, GameMode.SURVIVAL);
-						} else {
-							Person_splitter.gamemodes.put(world, GameMode.SURVIVAL);
-						}*/
+						 * if (Person_splitter.gamemodes.get(world) != null) {
+						 * Person_splitter.gamemodes.replace(world,
+						 * GameMode.SURVIVAL); } else {
+						 * Person_splitter.gamemodes.put(world,
+						 * GameMode.SURVIVAL); }
+						 */
 						Person_splitter.gamemodes.put(world, GameMode.SURVIVAL);
-					} else if ((Short)world_options.get(1)==1) {
+					} else if ((Short) world_options.get(1) == 1) {
 						/*
-						if (Person_splitter.gamemodes.get(world) != null) {
-							Person_splitter.gamemodes.replace(world, GameMode.CREATIVE);
-						} else {
-							Person_splitter.gamemodes.put(world, GameMode.CREATIVE);
-						}*/
+						 * if (Person_splitter.gamemodes.get(world) != null) {
+						 * Person_splitter.gamemodes.replace(world,
+						 * GameMode.CREATIVE); } else {
+						 * Person_splitter.gamemodes.put(world,
+						 * GameMode.CREATIVE); }
+						 */
 						Person_splitter.gamemodes.put(world, GameMode.CREATIVE);
-					} else if ((Short)world_options.get(1)==2) {
+					} else if ((Short) world_options.get(1) == 2) {
 						/*
-						if (Person_splitter.gamemodes.get(world) != null) {
-							Person_splitter.gamemodes.replace(world, GameMode.ADVENTURE);
-						} else {
-							Person_splitter.gamemodes.put(world, GameMode.ADVENTURE);
-						}*/
+						 * if (Person_splitter.gamemodes.get(world) != null) {
+						 * Person_splitter.gamemodes.replace(world,
+						 * GameMode.ADVENTURE); } else {
+						 * Person_splitter.gamemodes.put(world,
+						 * GameMode.ADVENTURE); }
+						 */
 						Person_splitter.gamemodes.put(world, GameMode.ADVENTURE);
-					} else if ((Short)world_options.get(1)==3) {
+					} else if ((Short) world_options.get(1) == 3) {
 						/*
-						if (Person_splitter.gamemodes.get(world) != null) {
-							Person_splitter.gamemodes.replace(world, GameMode.SPECTATOR);
-						} else {
-							Person_splitter.gamemodes.put(world, GameMode.SPECTATOR);
-						}*/
+						 * if (Person_splitter.gamemodes.get(world) != null) {
+						 * Person_splitter.gamemodes.replace(world,
+						 * GameMode.SPECTATOR); } else {
+						 * Person_splitter.gamemodes.put(world,
+						 * GameMode.SPECTATOR); }
+						 */
 						Person_splitter.gamemodes.put(world, GameMode.SPECTATOR);
 					} else {
-						/*if (Person_splitter.gamemodes.get(world) != null) {
-							Person_splitter.gamemodes.replace(world, GameMode.SURVIVAL);
-						} else {
-							Person_splitter.gamemodes.put(world, GameMode.SURVIVAL);
-						}*/
+						/*
+						 * if (Person_splitter.gamemodes.get(world) != null) {
+						 * Person_splitter.gamemodes.replace(world,
+						 * GameMode.SURVIVAL); } else {
+						 * Person_splitter.gamemodes.put(world,
+						 * GameMode.SURVIVAL); }
+						 */
 						Person_splitter.gamemodes.put(world, GameMode.SURVIVAL);
 					}
 					// animal and Monster-Spawnrate
@@ -275,25 +279,30 @@ public class LOOP {
 						// Here if the Admin says that the persons should spawn,
 						// where they left the last time.
 						// Putting into Hashmap
-						/*if (Person_splitter.spawns.get(world) != null) {
-							Person_splitter.spawns.replace(world, new Location(world, 0, 0, 0));
-						} else {
-							Person_splitter.spawns.put(world, new Location(world, 0, 0, 0));
-						}*/
+						/*
+						 * if (Person_splitter.spawns.get(world) != null) {
+						 * Person_splitter.spawns.replace(world, new
+						 * Location(world, 0, 0, 0)); } else {
+						 * Person_splitter.spawns.put(world, new Location(world,
+						 * 0, 0, 0)); }
+						 */
 						Person_splitter.spawns.put(world, new Location(world, 0, 0, 0));
 					} else {
-						/*if (Person_splitter.spawns.get(world) != null) {
-							Person_splitter.spawns.replace(world, new Location(world, (int) world_options.get(6),
-									(int) world_options.get(7), (int) world_options.get(8)));
-						} else {
-							Person_splitter.spawns.put(world, new Location(world, (int) world_options.get(6),
-									(int) world_options.get(7), (int) world_options.get(8)));
-						}*/
+						/*
+						 * if (Person_splitter.spawns.get(world) != null) {
+						 * Person_splitter.spawns.replace(world, new
+						 * Location(world, (int) world_options.get(6), (int)
+						 * world_options.get(7), (int) world_options.get(8))); }
+						 * else { Person_splitter.spawns.put(world, new
+						 * Location(world, (int) world_options.get(6), (int)
+						 * world_options.get(7), (int) world_options.get(8))); }
+						 */
 						Person_splitter.spawns.put(world, new Location(world, (int) world_options.get(6),
 								(int) world_options.get(7), (int) world_options.get(8)));
 					}
 
 				}
+				MYSQL_CONNECTOR_REGISTER_SERVER.update_server_id();
 
 			}
 

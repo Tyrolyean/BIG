@@ -4,10 +4,13 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 import com.mysql.jdbc.Statement;
 
 import org.apache.commons.net.ftp.*;
+import org.bukkit.entity.Player;
 
 public class MYSQL_CONNECTOR_SERVER {
 	static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
@@ -263,4 +266,63 @@ public class MYSQL_CONNECTOR_SERVER {
 			} // end finally try
 		} // end try
 	}
+	
+	
+	public static HashMap<Integer, String[]> get_servers_allowed(Player player){
+		
+		HashMap<Integer, String[]> worlds=new HashMap<Integer, String[]>();
+		
+		//okay to explain  what is returned:
+		
+		//1. the integer stands for the World Id
+		//2.the String Array contains Information about the Server:
+		//	1. The erver Name
+		//	2. The Serverowner
+		
+		//More Information will come in the Future. For example an  MOTD.
+		
+		Connection conn = null;
+		java.sql.Statement stmt = null;
+		try {
+
+			// JDBC driver
+			Class.forName("com.mysql.jdbc.Driver");
+
+			// Open connection
+			conn = DriverManager.getConnection(DB_URL, USER, PASS);
+
+			// Executing query
+			stmt = conn.createStatement();
+			ResultSet rs =stmt.executeQuery("SELECT * FROM permissions WHERE uuid='"+player.getUniqueId().toString().replace('-', ' ').replaceAll("\\s", "")+"'");
+			ArrayList<Integer> world_ids=new ArrayList<Integer>();
+			while (rs.next()){
+				
+				world_ids.add(rs.getInt("world_id"));
+				
+			}
+			rs.close();
+			
+			
+			for(int world_id:world_ids){
+				
+				rs=stmt.executeQuery("SELECT * FROM worlds WHERE world_id="+world_id);
+				while(rs.next()){
+					
+					String[] data ={rs.getString("world_name"),rs.getString("owner")};
+					worlds.put(world_id, data);
+				}
+				rs.close();
+			}
+			rs.close();
+			stmt.close();
+			conn.close();
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		
+		return worlds;
+	}
+	
+	
+	
 }

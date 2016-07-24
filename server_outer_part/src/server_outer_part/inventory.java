@@ -6,26 +6,26 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.logging.Level;
 
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonParser;
+import com.google.gson.Gson;
 
-import serializers.InventorySerializer;
 
 public class inventory {
 
 	public static void save_Inventory(Player player){
 		Inventory inventory=player.getInventory();
-		inventory.clear();
-		JsonArray raw_json ;
+		Gson gson =new Gson();
+
 		
-		raw_json=InventorySerializer.serializeInventory(player.getInventory().getContents());
 		
-		String save_Inventory=raw_json.getAsString();
+		if(Person_splitter.debug){
+			Person_splitter.logger.log(Level.INFO, "Saving Inventory from "+player.getDisplayName()+" as "+gson.toJson(inventory.getContents()));
+		}
 		if (Person_splitter.debug) {
 			System.out.println("Setting file Inventory for Player " + player.getUniqueId().toString());
 		}
@@ -41,9 +41,8 @@ public class inventory {
 		}
 		try {
 			FileWriter writer = new FileWriter(file);
-			writer.write(save_Inventory);
-			writer.flush();
-			writer.close();
+			gson.toJson(inventory, writer);
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -52,6 +51,7 @@ public class inventory {
 	public static void load_Inventory(Player player){
 		String inventory_string=new String();//Initializing for the win!
 		Inventory inventory=player.getInventory();
+		Gson gson =new Gson();
 		inventory.clear();
 		File file = new File(System.getProperty("user.dir") + "/plugins/BIG/inventorys/"
 				+ player.getLocation().getWorld().getName() + "/"
@@ -66,10 +66,7 @@ public class inventory {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		JsonArray json =new JsonParser().parse(inventory_string).getAsJsonArray();
-		
-		ItemStack[] content=InventorySerializer.deserializeInventory(json, 88); //I wasn't able to rewrite the Serializer so I did what the original Programmer said and 
+		ItemStack[] content=	gson.fromJson(inventory_string, ItemStack[].class);	
 		
 		inventory.setContents(content);
 	}

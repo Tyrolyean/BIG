@@ -1,45 +1,69 @@
 package bungee_plugin;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.ServerSocket;
+import java.net.Socket;
+
 import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.CommandSender;
-import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
-import net.md_5.bungee.api.plugin.Command;
 
-public class Command_connect extends Command {
-	public Command_connect() {
-		super("connect");
+public class TCP_LISTENER {
+
+	public static void start() {
+		main_transmission();
+
 	}
 
-	@Override
-	public void execute(CommandSender sender, String[] args) {
-		// Retrieving Information
-		ProxiedPlayer player = (ProxiedPlayer) sender;
-		Boolean arguments = false;
-		int server_id=MYSQL_CONNECTOR_PLAYER_TRANSMISSION.get_server(Integer.parseInt( args[0]));
-		try {
-			sender.sendMessage(
-					new ComponentBuilder("Verbinde mit dem Server auf dem sich Welt Nr. " + args[0] + "befindet!")
-							.color(ChatColor.WHITE).create());
-			arguments = true;
-			if (big.debug) {
-				System.out.println("Connecting to World!");
-				Integer.parseInt(args[0]);
-			}
-		} catch (Exception e) {
+	private static void main_transmission() {
 
-			arguments = true;
-		}
+		new Thread() {
+			@SuppressWarnings("resource")
+			public void run() {
+				try {
+					ServerSocket welcome_socket = new ServerSocket(1945);
+
+					// <the input comes like this:
+					// Player uuid with -
+					// target world
+					while (true) {
+						try{
+						Socket conn = welcome_socket.accept();
+						BufferedReader input = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+						String username = input.readLine();
+						int world_id = Integer.parseInt(input.readLine());
+						input.close();
+						conn.close();
+						if (big.debug) {
+							System.out.println("Got some input: " + username + " " + world_id);
+
+						}
+						ProxiedPlayer p = big.server.getPlayer(username);
+						connect(p,world_id);
+					}catch(Exception e){
+						e.printStackTrace();
+					}
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+
+		}.start();
+
+	}
+
+	private static void connect(ProxiedPlayer player,int world_id)
+	{
+		int server_id=MYSQL_CONNECTOR_PLAYER_TRANSMISSION.get_server(world_id);
 		ServerInfo target = null;
 		// Get hub
-		if (arguments) {
-			// go on with Code
 			Boolean hub_exists = false;
 			try {
 
-				if (player.getServer().getInfo().equals(ProxyServer.getInstance().getServerInfo("hub"))) {
+				if (player.getServer().getInfo().equals(big.server.getServerInfo("hub"))) {
 					hub_exists = true;
 				} else {
 					hub_exists = false;
@@ -50,7 +74,7 @@ public class Command_connect extends Command {
 			if (hub_exists) {
 				// Go on with cODE
 				try {
-					target = ProxyServer.getInstance().getServerInfo("s" + server_id);
+					target = big.server.getServerInfo("s" + server_id);
 				} catch (Exception e) {
 					target = null;
 				}
@@ -59,7 +83,7 @@ public class Command_connect extends Command {
 					try {// get permission for joining world
 						permission = MYSQL_CONNECTOR_GET_PERMISSION.main(
 								player.getUniqueId().toString().replace('-', ' ').replaceAll("\\s", ""),
-								Integer.parseInt(args[0]));
+								world_id);
 					} catch (Exception e) {
 						permission = false;
 					}
@@ -67,7 +91,7 @@ public class Command_connect extends Command {
 						if (permission) {// if player is allowed to join world
 							// Registed Transmission to world with server_internal_number
 							// Connect to Server
-							MYSQL_CONNECTOR_PLAYER_TRANSMISSION.main(player.getDisplayName(), args[0]);
+							MYSQL_CONNECTOR_PLAYER_TRANSMISSION.main(player.getDisplayName(), ""+world_id);
 							player.connect(target);
 
 						} else {// send no permission error
@@ -93,11 +117,7 @@ public class Command_connect extends Command {
 				player.sendMessage(new ComponentBuilder("Bitte verwende diesen Command nur auf dem hub!")
 						.color(ChatColor.WHITE).create());
 			} // End hub_exists
-		} else {
-			// Send No input error
-			player.sendMessage(new ComponentBuilder("Unter Umständen solltest du vielleicht eine Welt-ID angeben?")
-					.color(ChatColor.WHITE).create());
-		} // end connector
+
 	}
-	
+
 }

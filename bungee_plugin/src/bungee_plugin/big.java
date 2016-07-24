@@ -9,38 +9,36 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.event.EventHandler;
 
-public class big extends Plugin implements Listener{
-	//Mysql-Database Location
-	public static String mysql="192.168.0.102";
-	//Global DEBUG
-	public static boolean debug=true;
-	public static String motd="Test Test \n 123";
-    @Override
-    //on Enable
-    public void onEnable() {
-    	//Starting the Loop for CHecking for new Servers
-    	LOOP.main(getProxy());
-    	//Register Commands and events
-    	getProxy().getPluginManager().registerCommand(this, new Command_Hub());
-    	getProxy().getPluginManager().registerCommand(this, new Command_connect());
-        getProxy().getPluginManager().registerListener(this, new bigListener());
-        ProxyServer.getInstance().getPluginManager().registerListener(this, this);
-        //End onEnable
-    }
-    @EventHandler
-    public void onKick(ServerKickEvent event) {
-    	String message = event.getKickReasonComponent().toString();
-    	event.setCancelled(true);
-    	ProxiedPlayer player = event.getPlayer();
-    	player.connect(ProxyServer.getInstance().getServerInfo("hub"));
-    	player.sendMessage(new ComponentBuilder(message)
-					.color(ChatColor.RED).create());
-    }
-    
-    
-    
-    
-    
-    
-    
+public class big extends Plugin implements Listener {
+	// Mysql-Database Location
+	public static String mysql = "192.168.0.13";
+	// Global DEBUG
+	public static boolean debug = true;
+	public static String motd = "Test Test \n 123";
+	public static ProxyServer server;
+
+	@Override
+	// on Enable
+	public void onEnable() {
+		// Starting the Loop for CHecking for new Servers
+		server = this.getProxy();
+		TCP_LISTENER.start();
+		LOOP.main(getProxy());
+		// Register Commands and events
+		getProxy().getPluginManager().registerCommand(this, new Command_Hub());
+		getProxy().getPluginManager().registerCommand(this, new Command_connect());
+		getProxy().getPluginManager().registerListener(this, new bigListener());
+		ProxyServer.getInstance().getPluginManager().registerListener(this, this);
+		// End onEnable
+	}
+
+	@EventHandler
+	public void onKick(ServerKickEvent event) {
+		String message = event.getKickReasonComponent().toString();
+		event.setCancelled(true);
+		ProxiedPlayer player = event.getPlayer();
+		player.connect(ProxyServer.getInstance().getServerInfo("hub"));
+		player.sendMessage(new ComponentBuilder(message).color(ChatColor.RED).create());
+	}
+
 }

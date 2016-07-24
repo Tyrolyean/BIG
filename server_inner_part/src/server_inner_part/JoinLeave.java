@@ -14,9 +14,12 @@ import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.HashMap;
+import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -24,8 +27,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -33,9 +42,9 @@ public class JoinLeave extends JavaPlugin implements Listener {
 	// variables
 	public Player player[] = new Player[this.getServer().getMaxPlayers() + 1];
 	public Location Lobby = new Location(this.getServer().getWorld("world"), 0, 0, 0);
-
+	public static ItemStack world_connector;
 	// Global used Mysql-Database
-	public static String mysql = "192.168.0.102";
+	public static String mysql = "192.168.0.13";
 	public static Server server;
 
 	// Global Debug mode
@@ -103,6 +112,10 @@ public class JoinLeave extends JavaPlugin implements Listener {
 				this.getServer().broadcastMessage("Fatal error at creating File!: " + e);
 			}
 		}
+		world_connector = new ItemStack(Material.COMPASS);
+		ItemMeta metas = world_connector.getItemMeta();
+		metas.setDisplayName("Weltenswitch");
+		world_connector.setItemMeta(metas);
 	}
 
 	private void addClassPath(final URL url) throws IOException {
@@ -137,7 +150,7 @@ public class JoinLeave extends JavaPlugin implements Listener {
 				JoinLeave.plugin.getServer().getScheduler().runTaskLater(this, new Runnable() {
 
 					public void run() {
-						event.getPlayer().sendMessage("Dein Aktivierungscode: "+code);
+						event.getPlayer().sendMessage("Dein Aktivierungscode: " + code);
 					}
 				}, 20L);
 			}
@@ -149,6 +162,13 @@ public class JoinLeave extends JavaPlugin implements Listener {
 		}
 		// set position to Lobby
 		// event.getPlayer().teleport(Lobby);
+	}
+
+	@EventHandler
+	public static void onPlayerJoin(PlayerJoinEvent event) {
+
+		event.getPlayer().getInventory().clear();
+		event.getPlayer().getInventory().setItem(1, world_connector);
 
 	}
 
@@ -156,6 +176,60 @@ public class JoinLeave extends JavaPlugin implements Listener {
 	@EventHandler(priority = EventPriority.LOW)
 	public void onPlayerQuit(PlayerQuitEvent event) {
 		event.setQuitMessage(null);
+	}
+
+	@EventHandler
+	public void onInventoryClick(InventoryClickEvent event) {
+
+		if (event.getInventory().getTitle() == world_connector.getItemMeta().getDisplayName()) {
+			int world_id = event.getCurrentItem().getAmount();
+			TCP_CLIENT.transfer_player(this.getServer().getPlayer(event.getWhoClicked().getName()),
+					world_id);
+			event.setCancelled(true);
+		} else {
+			event.setCancelled(true);
+		}
+
+	}
+
+	@EventHandler
+	public void onPlayerUse(PlayerInteractEvent event) {
+		if (debug()) {
+			this.getLogger().info("Player " + event.getPlayer().getDisplayName() + " Interacted over Hand:"
+					+ event.getHand().name() + " with " + event.getItem() + " to " + event.getMaterial());
+		}
+		Player p = event.getPlayer();
+		try {
+
+			if (event.getItem().getType() == world_connector.getType()) {
+				HashMap<Integer, String[]> info = MYSQL_CONNECTOR_SERVER.get_servers_allowed(p);
+				int temp = info.keySet().size() / 9;
+				temp *= 9;
+				temp += 9;
+
+				if (debug()) {
+					this.getLogger().log(Level.INFO,
+							"Player clicked with Switcher! Opening Inventory with length " + temp + " !");
+				}
+
+				Inventory world_viewer = this.getServer().createInventory(null, temp,
+						world_connector.getItemMeta().getDisplayName());
+				for (Integer world_id : info.keySet()) {
+					ItemStack item = new ItemStack(Material.COMPASS);
+					ItemMeta meta = item.getItemMeta();
+					meta.setDisplayName(info.get(world_id)[0] + " von " + info.get(world_id)[1]);
+					item.setItemMeta(meta);
+					item.setAmount(world_id);
+					world_viewer.addItem(item);
+				}
+				p.openInventory(world_viewer);
+				return;
+			} else {
+				event.setCancelled(true);
+			}
+		} catch (Exception e) {
+
+		}
 	}
 
 	@Override
@@ -221,7 +295,7 @@ public class JoinLeave extends JavaPlugin implements Listener {
 				bw.write("\nlobby_world: " + Lobby.getWorld());
 				bw.close();
 			} catch (IOException e) {
-				
+
 				e.printStackTrace();
 			}
 			// written
@@ -250,20 +324,20 @@ public class JoinLeave extends JavaPlugin implements Listener {
 		}
 		return false;
 	}
-	
-	public void someFunction(final String code,final Player player) {
-	    new Thread(new Runnable() {
-	        public void run(){
-	            try {
+
+	public void someFunction(final String code, final Player player) { // Just a
+																		// Joke
+																		// :D
+		new Thread(new Runnable() {
+			public void run() {
+				try {
 					Thread.sleep(500);
-					player.sendMessage("Dein Aktivierungscode ist "+code);
+					player.sendMessage("Dein Aktivierungscode ist " + code);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-	        }
-	    }).start();
+			}
+		}).start();
 	}
-	
-	
 
 }

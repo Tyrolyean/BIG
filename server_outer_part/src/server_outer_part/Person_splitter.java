@@ -1,17 +1,14 @@
 package server_outer_part;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
-import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,16 +40,12 @@ import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerLoginEvent.Result;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 
-import serializers.InventorySerializer;
 
 public class Person_splitter extends JavaPlugin implements Listener {
 
@@ -69,7 +62,7 @@ public class Person_splitter extends JavaPlugin implements Listener {
 
 	// Global variables
 	// Database Location
-	public static String database = "192.168.0.102";
+	public static String database = "192.168.0.13";
 	public static Logger logger;
 	// Debug
 	public static boolean debug = true;
@@ -147,21 +140,7 @@ public class Person_splitter extends JavaPlugin implements Listener {
 		logger.info("©Tyrolyean 2016 Made for Ownworld");
 		server = this.getServer();
 		server_id = MYSQL_CONNECTOR_OPTIONS.get_id();
-		String DATA[] = new String[2];
-		String i = null;
-		try {
-			Socket s = new Socket("192.168.0.1", 80);
-			i = s.getLocalAddress().getHostAddress();
-			s.close();
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		if (debug) {
-			System.out.println("Retrievt ip =" + i);
-		}
-		DATA[0] = i;
-		DATA[1] = Integer.toString(this.getServer().getPort());
+		MYSQL_CONNECTOR_REGISTER_SERVER.update_server_id();
 		getServer().getPluginManager().registerEvents(this, this);
 		this.getServer().broadcastMessage("The Server has been reloaded!");
 		LOOP checker = new LOOP();
@@ -227,9 +206,6 @@ public class Person_splitter extends JavaPlugin implements Listener {
 
 	@EventHandler(priority = EventPriority.HIGH)
 	public void onPlayerQuit(PlayerQuitEvent event) {
-
-
-		
 		// register last position of player in config
 		this.getConfig().set(
 				"z" + event.getPlayer().getLocation().getWorld().getName() + event.getPlayer().getDisplayName(),
@@ -293,41 +269,13 @@ public class Person_splitter extends JavaPlugin implements Listener {
 		event.getPlayer().setGameMode(gamemodes.get(event.getPlayer().getLocation().getWorld()));
 
 		// Set Player inventory from Files
-		try {
-			if (debug) {
-				this.getLogger().info("Getting Inventory for Player " + event.getPlayer().getUniqueId().toString()
-						+ " in World " + templocation.getWorld().getName());
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		File file = new File(System.getProperty("user.dir") + "/plugins/BIG/inventorys/"
-				+ templocation.getWorld().getName() + "/" + event.getPlayer().getUniqueId().toString());
-		event.getPlayer().getInventory().clear();
-		if (file.exists()) {
-			ItemStack[] inventory = null;
-			try {
-				BufferedReader reader = new BufferedReader(new FileReader(file));
-				String object_tmp = reader.readLine();
-				reader.close();
-				JsonObject object = new JsonObject();
-				object.get(object_tmp);
-				inventory = InventorySerializer.deserializeInventory((JsonArray) object.get("1"),
-						((JsonArray) object.get("1")).size());
+		
 
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-
-			event.getPlayer().getInventory().setContents(inventory);
 			/*
 			 * if (debug) { this.getLogger().info("Setting Player Inventory:");
 			 * for (ItemStack item : inventory) { System.out.println(item); } }
-			 */
-		}
-
+			 * 		}*/
+		inventory.load_Inventory(event.getPlayer());
 	}
 
 	@EventHandler

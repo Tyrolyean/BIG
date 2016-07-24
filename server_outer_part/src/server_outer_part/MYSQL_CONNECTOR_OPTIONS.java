@@ -298,7 +298,7 @@ public class MYSQL_CONNECTOR_OPTIONS {
 				returner.add(rs.getString("world_name"));
 				returner.add(rs.getString("expires"));
 				returner.add(rs.getString("owner"));
-				returner.add(rs.getString("gamemode"));
+				returner.add(null);
 				returner.add(rs.getString("world_type"));
 				returner.add(rs.getString("server_internal_number"));
 			} // Got the returner
