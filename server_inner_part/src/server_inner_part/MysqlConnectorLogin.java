@@ -4,7 +4,7 @@ import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.sql.*;
 
-public class MYSQL_CONNECTOR_LOGIN {
+public class MysqlConnectorLogin {
 	// JDBC driver name and database URL
 	static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
 	static final String DB_URL = "jdbc:mysql://" + JoinLeave.mysql + "/acounts" + "?useSSL=true";

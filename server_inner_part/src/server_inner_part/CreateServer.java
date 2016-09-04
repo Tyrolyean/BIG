@@ -19,7 +19,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 
-public class Create_Server extends JavaPlugin {
+public class CreateServer extends JavaPlugin {
 	public static boolean main(int Port, int id, String name, String type, String path, FTPClient server,
 			String username, String password) throws IOException {
 		// find out which Folder has the highest Number

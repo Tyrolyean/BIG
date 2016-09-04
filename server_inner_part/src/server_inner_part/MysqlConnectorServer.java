@@ -12,7 +12,7 @@ import com.mysql.jdbc.Statement;
 import org.apache.commons.net.ftp.*;
 import org.bukkit.entity.Player;
 
-public class MYSQL_CONNECTOR_SERVER {
+public class MysqlConnectorServer {
 	static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
 	static final String DB_URL = "jdbc:mysql://" + JoinLeave.mysql + "/server_parts" + "?useSSL=true";
 
@@ -127,7 +127,7 @@ public class MYSQL_CONNECTOR_SERVER {
 					if (JoinLeave.debug()) {
 						System.out.println("Creating a new Server for player with uuid " + uuid);
 					}
-					Create_Server.main(port, sid, username, type, direction, server, username, password);
+					CreateServer.main(port, sid, username, type, direction, server, username, password);
 					direction = direction + sid + "/";
 					stmt.execute("INSERT INTO server_location (RAM,port,adress,owner,location,name) VALUES (512,'"
 							+ port + "','" + adress + "','" + uuid + "','" + direction + "','" + name + "') ");

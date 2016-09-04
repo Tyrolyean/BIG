@@ -10,7 +10,7 @@ import java.net.Socket;
 
 import org.bukkit.entity.Player;
 
-public class TCP_CLIENT {
+public class TcpClient {
 
 	public static void transfer_player(Player p, int world_id) {
 		try {

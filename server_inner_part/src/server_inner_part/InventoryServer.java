@@ -14,7 +14,7 @@ import org.bukkit.inventory.ItemStack;
 
 import com.mysql.jdbc.Statement;
 
-public class set_inventory_server {
+public class InventoryServer {
 
 	public static void main(Player player, Server server){
 		Connection conn = null;

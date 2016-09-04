@@ -20,9 +20,9 @@ import java.util.logging.Level;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -37,6 +37,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.Vector;
 
 public class JoinLeave extends JavaPlugin implements Listener {
 	// variables
@@ -45,7 +46,6 @@ public class JoinLeave extends JavaPlugin implements Listener {
 	public static ItemStack world_connector;
 	// Global used Mysql-Database
 	public static String mysql = "192.168.0.13";
-	public static Server server;
 
 	// Global Debug mode
 	public static Boolean debug() {
@@ -57,7 +57,6 @@ public class JoinLeave extends JavaPlugin implements Listener {
 	// onEnable
 	@Override
 	public void onEnable() {
-		server = this.getServer();
 		this.getLogger().info("Loading BIG-Plugin. ©2016|Tyrolyean. Al Rights Reserved. ");
 		// importing Javaprograms :
 		// jsch:
@@ -116,6 +115,7 @@ public class JoinLeave extends JavaPlugin implements Listener {
 		ItemMeta metas = world_connector.getItemMeta();
 		metas.setDisplayName("Weltenswitch");
 		world_connector.setItemMeta(metas);
+		Loop.main();
 	}
 
 	private void addClassPath(final URL url) throws IOException {
@@ -134,11 +134,11 @@ public class JoinLeave extends JavaPlugin implements Listener {
 	// Using Playr Login event to keep Datastream low
 	@EventHandler(priority = EventPriority.LOW)
 	public void onPlayerLoginEvent(PlayerLoginEvent event) {
-		MYSQL_CONNECTOR_LOGIN mysql = new MYSQL_CONNECTOR_LOGIN();
+		MysqlConnectorLogin mysql = new MysqlConnectorLogin();
 		int id = 0;
 		id = mysql.main(event.getPlayer().getUniqueId().toString().replace('-', ' ').replaceAll("\\s", ""));
 		if (id != 0) {
-			String code = MYSQL_CONNECTOR_LOGIN
+			String code = MysqlConnectorLogin
 					.get_Activation(event.getPlayer().getUniqueId().toString().replace('-', ' ').replaceAll("\\s", ""));
 			if (code != null) {
 				if (debug()) {
@@ -147,7 +147,7 @@ public class JoinLeave extends JavaPlugin implements Listener {
 				}
 				// Player hasn't activated his acount
 
-				JoinLeave.plugin.getServer().getScheduler().runTaskLater(this, new Runnable() {
+				this.getServer().getScheduler().runTaskLater(this, new Runnable() {
 
 					public void run() {
 						event.getPlayer().sendMessage("Dein Aktivierungscode: " + code);
@@ -180,13 +180,20 @@ public class JoinLeave extends JavaPlugin implements Listener {
 
 	@EventHandler
 	public void onInventoryClick(InventoryClickEvent event) {
+		try {
+			if (event.getCurrentItem() == null) {
+				return;
+			}
 
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		if (event.getInventory().getTitle() == world_connector.getItemMeta().getDisplayName()) {
 			int world_id = event.getCurrentItem().getAmount();
-			TCP_CLIENT.transfer_player(this.getServer().getPlayer(event.getWhoClicked().getName()),
-					world_id);
+			TcpClient.transfer_player(this.getServer().getPlayer(event.getWhoClicked().getName()), world_id);
 			event.setCancelled(true);
 		} else {
+
 			event.setCancelled(true);
 		}
 
@@ -194,15 +201,36 @@ public class JoinLeave extends JavaPlugin implements Listener {
 
 	@EventHandler
 	public void onPlayerUse(PlayerInteractEvent event) {
-		if (debug()) {
-			this.getLogger().info("Player " + event.getPlayer().getDisplayName() + " Interacted over Hand:"
-					+ event.getHand().name() + " with " + event.getItem() + " to " + event.getMaterial());
+		try {
+			if (debug()) {
+				if (event.getHand() == null) {
+					this.getLogger().info("Player " + event.getPlayer().getDisplayName() + " Interacted with "
+							+ event.getItem() + " to " + event.getMaterial() + ". Throwing away...");
+
+					@SuppressWarnings("deprecation")
+					FallingBlock f = event.getPlayer().getWorld().spawnFallingBlock(event.getPlayer().getLocation(), Material.PISTON_MOVING_PIECE, (byte) 0);
+					f.setVelocity(new Vector(1.0, 1.0, 0.0));
+					f.setPassenger(event.getPlayer());
+				} else {
+
+					this.getLogger().info("Player " + event.getPlayer().getDisplayName() + " Interacted over Hand:"
+							+ event.getHand().name() + " with " + event.getItem() + " to " + event.getMaterial());
+				}
+			}
+
+			if (event.getHand() == null) {// If he didin't interacted with his
+											// Hand
+				return;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return;
 		}
 		Player p = event.getPlayer();
 		try {
 
 			if (event.getItem().getType() == world_connector.getType()) {
-				HashMap<Integer, String[]> info = MYSQL_CONNECTOR_SERVER.get_servers_allowed(p);
+				HashMap<Integer, String[]> info = MysqlConnectorServer.get_servers_allowed(p);
 				int temp = info.keySet().size() / 9;
 				temp *= 9;
 				temp += 9;
@@ -214,13 +242,15 @@ public class JoinLeave extends JavaPlugin implements Listener {
 
 				Inventory world_viewer = this.getServer().createInventory(null, temp,
 						world_connector.getItemMeta().getDisplayName());
+				int i = 1;
 				for (Integer world_id : info.keySet()) {
 					ItemStack item = new ItemStack(Material.COMPASS);
 					ItemMeta meta = item.getItemMeta();
 					meta.setDisplayName(info.get(world_id)[0] + " von " + info.get(world_id)[1]);
 					item.setItemMeta(meta);
 					item.setAmount(world_id);
-					world_viewer.addItem(item);
+					world_viewer.setItem(i, item);
+					i++;
 				}
 				p.openInventory(world_viewer);
 				return;
@@ -262,7 +292,7 @@ public class JoinLeave extends JavaPlugin implements Listener {
 					} catch (Exception e) {
 						this.getLogger().warning(e.getMessage());
 					}
-					MYSQL_CONNECTOR_SERVER.upgrade_RAM(RAM, uuid);
+					MysqlConnectorServer.upgrade_RAM(RAM, uuid);
 
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -309,7 +339,7 @@ public class JoinLeave extends JavaPlugin implements Listener {
 					String rawuuid = input.readLine();
 					String uuid = rawuuid.substring(7, 39);
 					plugin = this;
-					MYSQL_CONNECTOR_SERVER.get_new(args[0], args[1], uuid);// MYSQL_CONNECTOR
+					MysqlConnectorServer.get_new(args[0], args[1], uuid);// MYSQL_CONNECTOR
 																			// WITH
 																			// FTP
 																			// and
@@ -325,9 +355,10 @@ public class JoinLeave extends JavaPlugin implements Listener {
 		return false;
 	}
 
-	public void someFunction(final String code, final Player player) { // Just a
-																		// Joke
-																		// :D
+	public void activationCode(final String code, final Player player) { // Just
+																			// a
+																			// Joke
+																			// :D
 		new Thread(new Runnable() {
 			public void run() {
 				try {
