@@ -3,9 +3,11 @@ package server_inner_part;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class LOOP {
+import org.bukkit.entity.Player;
 
-	public void main() {
+public class Loop {
+
+	public static void main() {
 		// Called first when the Programm starts!
 		// Explanation:
 		// Run Task Later is used in order to Run the world-Creation
@@ -22,6 +24,15 @@ public class LOOP {
 		timer.scheduleAtFixedRate(new TimerTask() {
 			@Override
 			public void run() {
+				//Setting Ranks
+				JoinLeave jl =new JoinLeave();
+				for(Player p:jl.getServer().getOnlinePlayers()){
+					
+					
+					
+				}
+				
+				
 				
 				
 				
