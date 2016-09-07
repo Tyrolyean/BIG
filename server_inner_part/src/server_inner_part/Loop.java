@@ -3,8 +3,6 @@ package server_inner_part;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.bukkit.entity.Player;
-
 public class Loop {
 
 	public static void main() {
@@ -25,12 +23,7 @@ public class Loop {
 			@Override
 			public void run() {
 				//Setting Ranks
-				JoinLeave jl =new JoinLeave();
-				for(Player p:jl.getServer().getOnlinePlayers()){
-					
-					
-					
-				}
+				Tools.updatePlayerRanks();
 				
 				
 				

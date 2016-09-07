@@ -16,10 +16,12 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashMap;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.FallingBlock;
@@ -44,6 +46,8 @@ public class JoinLeave extends JavaPlugin implements Listener {
 	public Player player[] = new Player[this.getServer().getMaxPlayers() + 1];
 	public Location Lobby = new Location(this.getServer().getWorld("world"), 0, 0, 0);
 	public static ItemStack world_connector;
+	public static Server server;
+	public static Logger logger;
 	// Global used Mysql-Database
 	public static String mysql = "192.168.0.13";
 
@@ -57,6 +61,8 @@ public class JoinLeave extends JavaPlugin implements Listener {
 	// onEnable
 	@Override
 	public void onEnable() {
+		server = this.getServer();
+		logger = this.getLogger();
 		this.getLogger().info("Loading BIG-Plugin. ©2016|Tyrolyean. Al Rights Reserved. ");
 		// importing Javaprograms :
 		// jsch:
@@ -169,6 +175,7 @@ public class JoinLeave extends JavaPlugin implements Listener {
 
 		event.getPlayer().getInventory().clear();
 		event.getPlayer().getInventory().setItem(1, world_connector);
+		Tools.updatePlayerRanks();
 
 	}
 
@@ -194,13 +201,19 @@ public class JoinLeave extends JavaPlugin implements Listener {
 			event.setCancelled(true);
 		} else {
 
-			event.setCancelled(true);
+			if (ranks.get(event.getWhoClicked()) != 0) {
+				event.setCancelled(true);
+
+			} else {
+				event.setCancelled(false);
+			}
 		}
 
 	}
 
 	@EventHandler
 	public void onPlayerUse(PlayerInteractEvent event) {
+		Player p = event.getPlayer();
 		try {
 			if (debug()) {
 				if (event.getHand() == null) {
@@ -208,7 +221,8 @@ public class JoinLeave extends JavaPlugin implements Listener {
 							+ event.getItem() + " to " + event.getMaterial() + ". Throwing away...");
 
 					@SuppressWarnings("deprecation")
-					FallingBlock f = event.getPlayer().getWorld().spawnFallingBlock(event.getPlayer().getLocation(), Material.PISTON_MOVING_PIECE, (byte) 0);
+					FallingBlock f = event.getPlayer().getWorld().spawnFallingBlock(event.getPlayer().getLocation(),
+							Material.PISTON_MOVING_PIECE, (byte) 0);
 					f.setVelocity(new Vector(1.0, 1.0, 0.0));
 					f.setPassenger(event.getPlayer());
 				} else {
@@ -220,13 +234,23 @@ public class JoinLeave extends JavaPlugin implements Listener {
 
 			if (event.getHand() == null) {// If he didin't interacted with his
 											// Hand
-				return;
+				if (ranks.get(p) != 0) {
+					event.setCancelled(true);
+
+				} else {
+					event.setCancelled(false);
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			return;
+			if (ranks.get(p) != 0) {
+				event.setCancelled(true);
+
+			} else {
+				event.setCancelled(false);
+			}
+
 		}
-		Player p = event.getPlayer();
 		try {
 
 			if (event.getItem().getType() == world_connector.getType()) {
@@ -242,7 +266,7 @@ public class JoinLeave extends JavaPlugin implements Listener {
 
 				Inventory world_viewer = this.getServer().createInventory(null, temp,
 						world_connector.getItemMeta().getDisplayName());
-				int i = 1;
+				int i = 0;
 				for (Integer world_id : info.keySet()) {
 					ItemStack item = new ItemStack(Material.COMPASS);
 					ItemMeta meta = item.getItemMeta();
@@ -255,7 +279,7 @@ public class JoinLeave extends JavaPlugin implements Listener {
 				p.openInventory(world_viewer);
 				return;
 			} else {
-				event.setCancelled(true);
+
 			}
 		} catch (Exception e) {
 
@@ -370,5 +394,7 @@ public class JoinLeave extends JavaPlugin implements Listener {
 			}
 		}).start();
 	}
+
+	public static HashMap<Player, Integer> ranks = new HashMap<Player, Integer>();
 
 }
