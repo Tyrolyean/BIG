@@ -1,5 +1,5 @@
 # BIG
-Big was a project of mine to create and manage minecraft worlds.
+Big was a project of mine to create and manage minecraft worlds via a webinterface.
 
 I learned Java with this Project so don't expect any good looking code. 
 
